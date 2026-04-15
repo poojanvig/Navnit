@@ -17,13 +17,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://your-backend-url.com"
+        "EXPO_PUBLIC_API_URL": "https://navnit.onrender.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://your-backend-url.com"
+        "EXPO_PUBLIC_API_URL": "https://navnit.onrender.com"
       }
     }
   }

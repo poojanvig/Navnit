@@ -2,7 +2,7 @@ import { Platform } from "react-native";
 import { getItem, setItem, deleteItem } from "./storage";
 
 // Set your Render URL here after deploying, or use localhost for dev
-const PROD_URL = "https://navnit-api.onrender.com"; // ← update after deploy
+const PROD_URL = "https://navnit.onrender.com";
 
 const BASE =
   process.env.EXPO_PUBLIC_API_URL ||
