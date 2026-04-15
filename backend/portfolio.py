@@ -175,6 +175,45 @@ def verify_otp(
     }
 
 
+@router.post("/seed")
+def seed_portfolio(
+    payload: dict,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Seed portfolio with pre-parsed CAS data (for migration/demo)."""
+    data = payload.get("data", {})
+    if "investor" not in data:
+        raise HTTPException(400, "Invalid portfolio data")
+
+    pan = data.get("investor", {}).get("pan", "")
+    investor_name = data.get("investor", {}).get("name", "")
+    total_value = data.get("summary", {}).get("total_value", 0)
+
+    portfolio = db.query(Portfolio).filter(
+        Portfolio.user_id == user.id, Portfolio.pan == pan
+    ).first()
+
+    if portfolio:
+        existing = portfolio.get_data()
+        merged = merge_into_portfolio(existing, data)
+        portfolio.set_data(merged)
+        portfolio.investor_name = investor_name
+        portfolio.total_value = merged.get("summary", {}).get("total_value", 0)
+        portfolio.updated_at = datetime.utcnow()
+    else:
+        portfolio = Portfolio(
+            user_id=user.id, pan=pan,
+            investor_name=investor_name, total_value=total_value,
+        )
+        portfolio.set_data(data)
+        db.add(portfolio)
+
+    db.commit()
+    db.refresh(portfolio)
+    return {"portfolio_id": portfolio.id, "total_value": portfolio.total_value}
+
+
 @router.get("/")
 def list_portfolios(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).all()
