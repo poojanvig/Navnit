@@ -7,16 +7,24 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { getPortfolios, getPortfolio } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
-import { colors, spacing, fontSize, borderRadius } from "../../lib/theme";
+import {
+  colors,
+  spacing,
+  fontSize,
+  borderRadius,
+  tabular,
+  cardShadow,
+} from "../../lib/theme";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const router = useRouter();
-  const [portfolios, setPortfolios] = useState<any[]>([]);
+  const [, setPortfolios] = useState<any[]>([]);
   const [activeData, setActiveData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,7 +65,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color={colors.textSecondary} />
+        <ActivityIndicator color={colors.accent} />
       </View>
     );
   }
@@ -68,7 +76,6 @@ export default function Dashboard() {
   const demat = activeData?.demat_accounts || [];
   const mf = activeData?.mutual_funds || [];
 
-  // Calculate MF P&L
   let totalCost = 0;
   let totalVal = 0;
   const schemes: any[] = [];
@@ -83,7 +90,11 @@ export default function Dashboard() {
   const gainPct = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
   const totalPortfolio = summary?.total_value || 0;
 
-  // Top holdings (MF + demat securities combined)
+  const mfValue = accounts.mutual_funds?.total_value || 0;
+  const dematValue = accounts.demat?.total_value || 0;
+  const mfPct = totalPortfolio > 0 ? (mfValue / totalPortfolio) * 100 : 0;
+  const dematPct = totalPortfolio > 0 ? (dematValue / totalPortfolio) * 100 : 0;
+
   const allHoldings: any[] = [];
   schemes.forEach((s) => {
     const name = s.name?.includes(" - ") ? s.name.split(" - ").pop() : s.name;
@@ -119,6 +130,13 @@ export default function Dashboard() {
   });
   allHoldings.sort((a, b) => b.value - a.value);
 
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
   return (
     <ScrollView
       style={styles.container}
@@ -127,18 +145,45 @@ export default function Dashboard() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => { setRefreshing(true); load(); }}
-          tintColor={colors.textSecondary}
+          onRefresh={() => {
+            setRefreshing(true);
+            load();
+          }}
+          tintColor={colors.accent}
         />
       }
     >
+      {/* Top bar */}
+      <View style={styles.topBar}>
+        <Image
+          source={require("../../assets/logo.png")}
+          style={styles.brandLogo}
+          resizeMode="contain"
+        />
+        <View style={styles.liveChip}>
+          <View style={styles.livePulse} />
+          <Text style={styles.liveText}>LIVE</Text>
+        </View>
+      </View>
+
       {!activeData ? (
         <View style={styles.emptyWrap}>
           <View style={styles.header}>
-            <Text style={styles.greeting}>Hello, {user?.name?.split(" ")[0]}</Text>
+            <Text style={styles.greeting}>
+              Hello, {user?.name?.split(" ")[0] || "there"}
+            </Text>
+            <Text style={styles.date}>
+              {now.toLocaleDateString("en-IN", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+              })}
+            </Text>
           </View>
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>◎</Text>
+            <View style={styles.emptyIconWrap}>
+              <Text style={styles.emptyIcon}>◎</Text>
+            </View>
             <Text style={styles.emptyTitle}>No portfolio linked</Text>
             <Text style={styles.emptySubtitle}>
               Connect your demat account to see all your investments in one place
@@ -146,9 +191,10 @@ export default function Dashboard() {
             <TouchableOpacity
               style={styles.primaryBtn}
               onPress={() => router.push("/add-portfolio")}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
               <Text style={styles.primaryBtnText}>Link Portfolio</Text>
+              <Text style={styles.primaryBtnArrow}>→</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -160,7 +206,7 @@ export default function Dashboard() {
               Hello, {user?.name?.split(" ")[0]}
             </Text>
             <Text style={styles.date}>
-              {new Date().toLocaleDateString("en-IN", {
+              {now.toLocaleDateString("en-IN", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
@@ -170,105 +216,191 @@ export default function Dashboard() {
 
           {/* Hero Card — Total Portfolio */}
           <View style={styles.heroCard}>
+            <View style={styles.heroAccentStrip} />
             <View style={styles.heroTop}>
               <Text style={styles.heroLabel}>Total Portfolio Value</Text>
-              <View style={styles.liveDot} />
+              <Text style={styles.heroTimestamp}>AS OF {timeStr}</Text>
             </View>
             <Text style={styles.heroAmount}>{fmtINRFull(totalPortfolio)}</Text>
+
+            {totalCost > 0 && (
+              <View style={styles.heroPillRow}>
+                <View
+                  style={[
+                    styles.pill,
+                    {
+                      backgroundColor:
+                        totalGain >= 0 ? colors.successDim : colors.errorDim,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.pillText,
+                      { color: totalGain >= 0 ? colors.successBright : colors.errorBright },
+                    ]}
+                  >
+                    {totalGain >= 0 ? "▲" : "▼"} {Math.abs(gainPct).toFixed(2)}%
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.heroGainAbs,
+                    { color: totalGain >= 0 ? colors.successBright : colors.errorBright },
+                  ]}
+                >
+                  {totalGain >= 0 ? "+" : ""}
+                  {fmtINR(totalGain)}
+                </Text>
+                <Text style={styles.heroGainSub}>all-time</Text>
+              </View>
+            )}
+
             <View style={styles.heroDivider} />
             <View style={styles.heroBottom}>
               <View style={styles.heroMeta}>
-                <Text style={styles.heroMetaLabel}>Investor</Text>
+                <Text style={styles.heroMetaLabel}>INVESTOR</Text>
                 <Text style={styles.heroMetaValue}>
-                  {investor?.name?.split(" ").map((w: string) => w[0]?.toUpperCase() + w.slice(1).toLowerCase()).join(" ")}
+                  {investor?.name
+                    ?.split(" ")
+                    .map((w: string) => w[0]?.toUpperCase() + w.slice(1).toLowerCase())
+                    .join(" ")}
                 </Text>
               </View>
-              <View style={styles.heroMeta}>
+              <View style={[styles.heroMeta, { alignItems: "flex-end" }]}>
                 <Text style={styles.heroMetaLabel}>PAN</Text>
                 <Text style={styles.heroMetaValue}>{investor?.pan}</Text>
               </View>
             </View>
           </View>
 
-          {/* Allocation Cards */}
-          <View style={styles.row}>
-            <View style={styles.allocCard}>
-              <View style={styles.allocDot}>
-                <View style={[styles.dot, { backgroundColor: "#6366F1" }]} />
-              </View>
-              <Text style={styles.allocLabel}>Mutual Funds</Text>
-              <Text style={styles.allocValue}>
-                {fmtINR(accounts.mutual_funds?.total_value || 0)}
-              </Text>
-              <Text style={styles.allocSub}>
-                {accounts.mutual_funds?.count || 0} folio(s) ·{" "}
-                {totalPortfolio > 0
-                  ? ((accounts.mutual_funds?.total_value || 0) / totalPortfolio * 100).toFixed(1)
-                  : 0}%
-              </Text>
+          {/* Allocation — split bar */}
+          <View style={styles.allocSection}>
+            <View style={styles.allocHeader}>
+              <Text style={styles.sectionLabel}>Asset Allocation</Text>
             </View>
-            <View style={styles.allocCard}>
-              <View style={styles.allocDot}>
-                <View style={[styles.dot, { backgroundColor: "#22D3EE" }]} />
+            <View style={styles.allocBar}>
+              {mfPct > 0 && (
+                <View
+                  style={[
+                    styles.allocBarSegment,
+                    { flex: mfPct, backgroundColor: colors.accent },
+                  ]}
+                />
+              )}
+              {dematPct > 0 && (
+                <View
+                  style={[
+                    styles.allocBarSegment,
+                    { flex: dematPct, backgroundColor: colors.violet },
+                  ]}
+                />
+              )}
+            </View>
+            <View style={styles.row}>
+              <View style={styles.allocCard}>
+                <View style={styles.allocCardHeader}>
+                  <View style={[styles.dot, { backgroundColor: colors.accent }]} />
+                  <Text style={styles.allocLabel}>Mutual Funds</Text>
+                </View>
+                <Text style={styles.allocValue}>{fmtINR(mfValue)}</Text>
+                <View style={styles.allocMetaRow}>
+                  <Text style={styles.allocSub}>
+                    {accounts.mutual_funds?.count || 0} folio
+                  </Text>
+                  <View style={styles.allocPctPill}>
+                    <Text style={styles.allocPctText}>{mfPct.toFixed(1)}%</Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.allocLabel}>Demat</Text>
-              <Text style={styles.allocValue}>
-                {fmtINR(accounts.demat?.total_value || 0)}
-              </Text>
-              <Text style={styles.allocSub}>
-                {accounts.demat?.count || 0} account(s) ·{" "}
-                {totalPortfolio > 0
-                  ? ((accounts.demat?.total_value || 0) / totalPortfolio * 100).toFixed(1)
-                  : 0}%
-              </Text>
+              <View style={styles.allocCard}>
+                <View style={styles.allocCardHeader}>
+                  <View style={[styles.dot, { backgroundColor: colors.violet }]} />
+                  <Text style={styles.allocLabel}>Demat</Text>
+                </View>
+                <Text style={styles.allocValue}>{fmtINR(dematValue)}</Text>
+                <View style={styles.allocMetaRow}>
+                  <Text style={styles.allocSub}>
+                    {accounts.demat?.count || 0} account
+                  </Text>
+                  <View
+                    style={[
+                      styles.allocPctPill,
+                      { backgroundColor: colors.violetDim },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.allocPctText, { color: colors.violetBright }]}
+                    >
+                      {dematPct.toFixed(1)}%
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
           </View>
 
           {/* P&L Card */}
           {totalCost > 0 && (
             <View style={styles.plCard}>
-              <Text style={styles.plTitle}>Mutual Fund P&L</Text>
-              <View style={styles.plGrid}>
-                <View style={styles.plItem}>
-                  <Text style={styles.plLabel}>Invested</Text>
-                  <Text style={styles.plValue}>{fmtINR(totalCost)}</Text>
-                </View>
-                <View style={[styles.plItem, styles.plItemCenter]}>
-                  <Text style={styles.plLabel}>Current</Text>
-                  <Text style={styles.plValue}>{fmtINR(totalVal)}</Text>
-                </View>
-                <View style={[styles.plItem, { alignItems: "flex-end" }]}>
-                  <Text style={styles.plLabel}>Returns</Text>
+              <View style={styles.plCardHeader}>
+                <Text style={styles.sectionLabel}>Mutual Fund P&L</Text>
+                <View
+                  style={[
+                    styles.pill,
+                    {
+                      backgroundColor:
+                        totalGain >= 0 ? colors.successDim : colors.errorDim,
+                    },
+                  ]}
+                >
                   <Text
                     style={[
-                      styles.plValue,
-                      { color: totalGain >= 0 ? colors.success : colors.error },
+                      styles.pillText,
+                      {
+                        color:
+                          totalGain >= 0 ? colors.successBright : colors.errorBright,
+                      },
                     ]}
                   >
-                    {totalGain >= 0 ? "+" : ""}{fmtINR(totalGain)}
+                    {totalGain >= 0 ? "▲" : "▼"} {Math.abs(gainPct).toFixed(2)}%
                   </Text>
                 </View>
               </View>
-              {/* P&L Bar */}
+              <View style={styles.plGrid}>
+                <View style={styles.plItem}>
+                  <Text style={styles.plLabel}>INVESTED</Text>
+                  <Text style={styles.plValue}>{fmtINR(totalCost)}</Text>
+                </View>
+                <View style={[styles.plItem, styles.plItemCenter]}>
+                  <Text style={styles.plLabel}>CURRENT</Text>
+                  <Text style={styles.plValue}>{fmtINR(totalVal)}</Text>
+                </View>
+                <View style={[styles.plItem, { alignItems: "flex-end" }]}>
+                  <Text style={styles.plLabel}>RETURNS</Text>
+                  <Text
+                    style={[
+                      styles.plValue,
+                      { color: totalGain >= 0 ? colors.successBright : colors.errorBright },
+                    ]}
+                  >
+                    {totalGain >= 0 ? "+" : ""}
+                    {fmtINR(totalGain)}
+                  </Text>
+                </View>
+              </View>
               <View style={styles.plBarWrap}>
                 <View
                   style={[
                     styles.plBar,
                     {
                       width: `${Math.min(100, Math.max(5, (totalVal / totalCost) * 100))}%`,
-                      backgroundColor: totalGain >= 0 ? colors.success : colors.error,
+                      backgroundColor:
+                        totalGain >= 0 ? colors.success : colors.error,
                     },
                   ]}
                 />
               </View>
-              <Text
-                style={[
-                  styles.plPct,
-                  { color: totalGain >= 0 ? colors.success : colors.error },
-                ]}
-              >
-                {totalGain >= 0 ? "▲" : "▼"} {Math.abs(gainPct).toFixed(1)}% overall
-              </Text>
             </View>
           )}
 
@@ -276,47 +408,92 @@ export default function Dashboard() {
           {allHoldings.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Holdings</Text>
-                <TouchableOpacity onPress={() => router.push("/(main)/holdings")}>
+                <Text style={styles.sectionLabel}>Top Holdings</Text>
+                <TouchableOpacity
+                  onPress={() => router.push("/(main)/holdings")}
+                  activeOpacity={0.7}
+                >
                   <Text style={styles.seeAll}>See all →</Text>
                 </TouchableOpacity>
               </View>
               {allHoldings.slice(0, 5).map((h, i) => {
-                const pct = totalPortfolio > 0 ? (h.value / totalPortfolio) * 100 : 0;
+                const pct =
+                  totalPortfolio > 0 ? (h.value / totalPortfolio) * 100 : 0;
+                const isMF = h.type === "MF";
+                const accentColor = isMF ? colors.accent : colors.violet;
                 return (
                   <View key={i} style={styles.holdingCard}>
-                    <View style={styles.holdingTop}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.holdingName} numberOfLines={1}>
-                          {h.name}
-                        </Text>
-                        <Text style={styles.holdingSub}>
-                          {h.sub} · {h.type}
-                        </Text>
-                      </View>
-                      <View style={{ alignItems: "flex-end" }}>
-                        <Text style={styles.holdingValue}>{fmtINR(h.value)}</Text>
-                        {h.gain !== 0 && (
-                          <Text
-                            style={[
-                              styles.holdingGain,
-                              { color: h.gain >= 0 ? colors.success : colors.error },
-                            ]}
-                          >
-                            {h.gain >= 0 ? "+" : ""}{fmtINR(h.gain)}
+                    <View
+                      style={[
+                        styles.holdingAccent,
+                        { backgroundColor: accentColor },
+                      ]}
+                    />
+                    <View style={styles.holdingContent}>
+                      <View style={styles.holdingTop}>
+                        <View style={{ flex: 1, paddingRight: spacing.sm }}>
+                          <Text style={styles.holdingName} numberOfLines={1}>
+                            {h.name}
                           </Text>
-                        )}
+                          <View style={styles.holdingSubRow}>
+                            <View
+                              style={[
+                                styles.typeChip,
+                                {
+                                  backgroundColor: isMF
+                                    ? colors.accentDim
+                                    : colors.violetDim,
+                                },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.typeChipText,
+                                  { color: isMF ? colors.accent : colors.violetBright },
+                                ]}
+                              >
+                                {h.type}
+                              </Text>
+                            </View>
+                            <Text style={styles.holdingSub} numberOfLines={1}>
+                              {h.sub}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{ alignItems: "flex-end" }}>
+                          <Text style={styles.holdingValue}>{fmtINR(h.value)}</Text>
+                          {h.gain !== 0 && (
+                            <Text
+                              style={[
+                                styles.holdingGain,
+                                {
+                                  color:
+                                    h.gain >= 0
+                                      ? colors.successBright
+                                      : colors.errorBright,
+                                },
+                              ]}
+                            >
+                              {h.gain >= 0 ? "+" : ""}
+                              {fmtINR(h.gain)}
+                            </Text>
+                          )}
+                        </View>
                       </View>
-                    </View>
-                    {/* Allocation bar */}
-                    <View style={styles.holdingBarWrap}>
-                      <View
-                        style={[
-                          styles.holdingBar,
-                          { width: `${Math.max(2, pct)}%` },
-                        ]}
-                      />
-                      <Text style={styles.holdingPct}>{pct.toFixed(1)}%</Text>
+                      <View style={styles.holdingBarWrap}>
+                        <View style={styles.holdingBarBg}>
+                          <View
+                            style={[
+                              styles.holdingBar,
+                              {
+                                width: `${Math.max(2, pct)}%`,
+                                backgroundColor: accentColor,
+                              },
+                            ]}
+                          />
+                        </View>
+                        <Text style={styles.holdingPct}>{pct.toFixed(1)}%</Text>
+                      </View>
                     </View>
                   </View>
                 );
@@ -354,20 +531,57 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
 
+  // Top bar
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.xl,
+  },
+  brandLogo: {
+    width: 180,
+    height: 54,
+  },
+  liveChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accentDim,
+    borderWidth: 1,
+    borderColor: colors.borderGlow,
+  },
+  livePulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accentBright,
+  },
+  liveText: {
+    fontSize: 10,
+    color: colors.accentBright,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+  },
+
   // Header
   header: {
     marginBottom: spacing.lg,
   },
   greeting: {
     fontSize: fontSize.xl,
-    fontWeight: "300",
+    fontWeight: "400",
     color: colors.text,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   date: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,
     color: colors.textTertiary,
     marginTop: 4,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
 
   // Empty state
@@ -379,18 +593,29 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing.xxl,
     alignItems: "center",
-    marginTop: spacing.xxl,
+    marginTop: spacing.xl,
     borderWidth: 1,
     borderColor: colors.border,
+    ...cardShadow,
+  },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.accentDim,
+    borderWidth: 1,
+    borderColor: colors.borderGlow,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.lg,
   },
   emptyIcon: {
-    fontSize: 48,
-    color: colors.textTertiary,
-    marginBottom: spacing.md,
+    fontSize: 34,
+    color: colors.accent,
   },
   emptyTitle: {
     fontSize: fontSize.lg,
-    fontWeight: "300",
+    fontWeight: "500",
     color: colors.text,
   },
   emptySubtitle: {
@@ -401,7 +626,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   primaryBtn: {
-    backgroundColor: colors.text,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.accent,
     borderRadius: borderRadius.full,
     paddingVertical: 14,
     paddingHorizontal: spacing.xl,
@@ -410,8 +638,13 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     color: colors.bg,
     fontSize: fontSize.sm,
-    fontWeight: "600",
+    fontWeight: "700",
     letterSpacing: 0.5,
+  },
+  primaryBtnArrow: {
+    color: colors.bg,
+    fontSize: fontSize.md,
+    fontWeight: "700",
   },
 
   // Hero Card
@@ -420,7 +653,18 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderLight,
+    overflow: "hidden",
+    ...cardShadow,
+  },
+  heroAccentStrip: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: colors.accent,
+    opacity: 0.8,
   },
   heroTop: {
     flexDirection: "row",
@@ -428,24 +672,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   heroLabel: {
-    fontSize: fontSize.xs,
+    fontSize: 11,
     color: colors.textSecondary,
-    letterSpacing: 2,
+    letterSpacing: 1.8,
+    fontWeight: "600",
     textTransform: "uppercase",
   },
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
-    opacity: 0.8,
+  heroTimestamp: {
+    fontSize: 10,
+    color: colors.textTertiary,
+    letterSpacing: 1.2,
+    fontWeight: "500",
+    ...tabular,
   },
   heroAmount: {
     fontSize: 44,
-    fontWeight: "200",
+    fontWeight: "300",
     color: colors.text,
     marginTop: spacing.sm,
-    letterSpacing: -1,
+    letterSpacing: -1.2,
+    ...tabular,
+  },
+  heroPillRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  heroGainAbs: {
+    fontSize: fontSize.sm,
+    fontWeight: "600",
+    ...tabular,
+  },
+  heroGainSub: {
+    fontSize: 11,
+    color: colors.textTertiary,
+    letterSpacing: 0.5,
   },
   heroDivider: {
     height: 1,
@@ -457,25 +719,64 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   heroMeta: {
-    gap: 2,
+    gap: 3,
   },
   heroMetaLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textTertiary,
-    letterSpacing: 1,
-    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    fontWeight: "600",
   },
   heroMetaValue: {
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: "400",
+    color: colors.text,
+    fontWeight: "500",
+    ...tabular,
   },
 
-  // Allocation cards
+  // Pills
+  pill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+  },
+  pillText: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+    ...tabular,
+  },
+
+  // Section labels
+  sectionLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    letterSpacing: 1.8,
+    textTransform: "uppercase",
+    fontWeight: "600",
+  },
+
+  // Allocation
+  allocSection: {
+    marginTop: spacing.lg,
+  },
+  allocHeader: {
+    marginBottom: spacing.sm,
+  },
+  allocBar: {
+    height: 8,
+    flexDirection: "row",
+    borderRadius: borderRadius.full,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceElevated,
+    marginBottom: spacing.sm,
+  },
+  allocBarSegment: {
+    height: "100%",
+  },
   row: {
     flexDirection: "row",
     gap: spacing.sm,
-    marginTop: spacing.sm,
   },
   allocCard: {
     flex: 1,
@@ -485,7 +786,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  allocDot: {
+  allocCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: spacing.sm,
   },
   dot: {
@@ -495,20 +799,40 @@ const styles = StyleSheet.create({
   },
   allocLabel: {
     fontSize: 11,
-    color: colors.textTertiary,
-    letterSpacing: 1.5,
+    color: colors.textSecondary,
+    letterSpacing: 1.2,
     textTransform: "uppercase",
+    fontWeight: "600",
   },
   allocValue: {
     fontSize: fontSize.lg,
-    fontWeight: "300",
+    fontWeight: "500",
     color: colors.text,
-    marginTop: 4,
+    marginTop: 2,
+    letterSpacing: -0.3,
+    ...tabular,
+  },
+  allocMetaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: spacing.sm,
   },
   allocSub: {
     fontSize: 11,
     color: colors.textTertiary,
-    marginTop: 4,
+  },
+  allocPctPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accentDim,
+  },
+  allocPctText: {
+    fontSize: 10,
+    color: colors.accent,
+    fontWeight: "700",
+    ...tabular,
   },
 
   // P&L Card
@@ -520,11 +844,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  plTitle: {
-    fontSize: 11,
-    color: colors.textTertiary,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
+  plCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: spacing.md,
   },
   plGrid: {
@@ -536,20 +859,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   plLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textTertiary,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    fontWeight: "600",
   },
   plValue: {
     fontSize: fontSize.md,
-    fontWeight: "400",
+    fontWeight: "500",
     color: colors.text,
     marginTop: 4,
+    ...tabular,
   },
   plBarWrap: {
     height: 4,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceAccent,
     borderRadius: 2,
     marginTop: spacing.md,
     overflow: "hidden",
@@ -557,12 +881,6 @@ const styles = StyleSheet.create({
   plBar: {
     height: 4,
     borderRadius: 2,
-  },
-  plPct: {
-    fontSize: fontSize.xs,
-    marginTop: spacing.sm,
-    textAlign: "right",
-    letterSpacing: 0.5,
   },
 
   // Holdings Section
@@ -575,24 +893,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: spacing.md,
   },
-  sectionTitle: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-  },
   seeAll: {
-    fontSize: fontSize.xs,
-    color: colors.textTertiary,
-    letterSpacing: 0.5,
+    fontSize: 11,
+    color: colors.accent,
+    letterSpacing: 0.8,
+    fontWeight: "600",
   },
   holdingCard: {
+    flexDirection: "row",
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    padding: spacing.md,
     marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: "hidden",
+  },
+  holdingAccent: {
+    width: 3,
+  },
+  holdingContent: {
+    flex: 1,
+    padding: spacing.md,
   },
   holdingTop: {
     flexDirection: "row",
@@ -604,19 +925,38 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: "500",
   },
+  holdingSubRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
+  },
+  typeChip: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  typeChipText: {
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
   holdingSub: {
     fontSize: 11,
     color: colors.textTertiary,
-    marginTop: 2,
+    flex: 1,
   },
   holdingValue: {
     fontSize: fontSize.sm,
     color: colors.text,
-    fontWeight: "500",
+    fontWeight: "600",
+    ...tabular,
   },
   holdingGain: {
     fontSize: 11,
     marginTop: 2,
+    fontWeight: "600",
+    ...tabular,
   },
   holdingBarWrap: {
     flexDirection: "row",
@@ -624,15 +964,24 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     gap: spacing.sm,
   },
+  holdingBarBg: {
+    flex: 1,
+    height: 3,
+    backgroundColor: colors.surfaceAccent,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
   holdingBar: {
     height: 3,
-    backgroundColor: "#6366F1",
     borderRadius: 2,
   },
   holdingPct: {
     fontSize: 10,
-    color: colors.textTertiary,
-    letterSpacing: 0.5,
+    color: colors.textSecondary,
+    fontWeight: "600",
+    width: 38,
+    textAlign: "right",
+    ...tabular,
   },
 
   // Fetch button
@@ -642,18 +991,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderLight,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.full,
     paddingVertical: 14,
     marginTop: spacing.xl,
   },
   fetchBtnIcon: {
     fontSize: fontSize.md,
-    color: colors.textTertiary,
+    color: colors.accent,
   },
   fetchBtnText: {
-    color: colors.textSecondary,
+    color: colors.text,
     fontSize: fontSize.sm,
     letterSpacing: 0.5,
+    fontWeight: "500",
   },
 });

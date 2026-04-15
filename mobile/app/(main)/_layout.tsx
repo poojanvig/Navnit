@@ -67,11 +67,11 @@ export default function MainLayout() {
           left: 20,
           right: 20,
           height: 68,
-          backgroundColor: "rgba(18,18,18,0.92)",
+          backgroundColor: "rgba(15,17,20,0.94)",
           borderRadius: borderRadius.xxl,
           borderTopWidth: 0,
           borderWidth: 1,
-          borderColor: "rgba(255,255,255,0.06)",
+          borderColor: "rgba(255,255,255,0.08)",
           paddingBottom: 0,
           paddingTop: 0,
           ...Platform.select({
@@ -90,7 +90,7 @@ export default function MainLayout() {
         tabBarItemStyle: {
           paddingVertical: 10,
         },
-        tabBarActiveTintColor: colors.text,
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarLabelStyle: {
           fontSize: 10,
@@ -145,14 +145,14 @@ const styles = StyleSheet.create({
   glowDot: {
     position: "absolute",
     top: -2,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.text,
-    shadowColor: "#fff",
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: colors.accent,
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 4,
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
   },
 
   // Dashboard: 2x2 grid
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   gridSquareActive: {
-    backgroundColor: colors.text,
+    backgroundColor: colors.accent,
   },
 
   // Holdings: bar chart
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   barActive: {
-    backgroundColor: colors.text,
+    backgroundColor: colors.accent,
   },
 
   // Profile: person
@@ -210,6 +210,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   personActive: {
-    backgroundColor: colors.text,
+    backgroundColor: colors.accent,
   },
 });

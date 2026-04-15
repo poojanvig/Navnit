@@ -1,11 +1,16 @@
 import { Platform } from "react-native";
 import { getItem, setItem, deleteItem } from "./storage";
 
-// Use localhost for web, 10.0.2.2 for Android emulator, localhost for iOS sim
+// Set your Render URL here after deploying, or use localhost for dev
+const PROD_URL = "https://navnit-api.onrender.com"; // ← update after deploy
+
 const BASE =
-  Platform.OS === "android"
+  process.env.EXPO_PUBLIC_API_URL ||
+  (Platform.OS === "android"
     ? "http://10.0.2.2:8000"
-    : "http://localhost:8000";
+    : __DEV__
+      ? "http://localhost:8000"
+      : PROD_URL);
 
 async function getToken(): Promise<string | null> {
   try {

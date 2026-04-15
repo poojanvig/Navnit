@@ -1,39 +1,54 @@
 export const colors = {
-  // Backgrounds
-  bg: "#000000",
-  surface: "#0D0D0D",
-  surfaceElevated: "#161616",
-  surfaceGlass: "rgba(255,255,255,0.04)",
+  // Backgrounds — layered near-black with slight cool tint
+  bg: "#07080A",
+  bgElevated: "#0B0D11",
+  surface: "#0F1114",
+  surfaceElevated: "#16181D",
+  surfaceAccent: "#1C1F26",
+  surfaceGlass: "rgba(255,255,255,0.03)",
 
-  // Borders
+  // Borders — subtle, with accent glow variants
   border: "rgba(255,255,255,0.06)",
   borderLight: "rgba(255,255,255,0.10)",
-  borderGlow: "rgba(255,255,255,0.15)",
+  borderStrong: "rgba(255,255,255,0.16)",
+  borderGlow: "rgba(0,224,164,0.28)",
+  borderViolet: "rgba(124,92,255,0.28)",
 
   // Text
-  text: "#FFFFFF",
-  textSecondary: "#999999",
-  textTertiary: "#555555",
-  textMuted: "#333333",
+  text: "#F5F7FA",
+  textSecondary: "#9BA1AD",
+  textTertiary: "#5A6070",
+  textMuted: "#2F333C",
 
-  // Accent
-  accent: "#C9FF57",       // CRED-like lime green
-  accentDim: "#8BAF3A",
-  silver: "#D4D4D8",
+  // Primary accent — electric mint (analytical / signal color)
+  accent: "#00E0A4",
+  accentBright: "#26F0B8",
+  accentDim: "rgba(0,224,164,0.12)",
+  accentDimStrong: "rgba(0,224,164,0.22)",
 
-  // Semantic
-  success: "#4ADE80",
-  successDim: "rgba(74,222,128,0.15)",
-  error: "#F87171",
-  errorDim: "rgba(248,113,113,0.15)",
-  warning: "#FBBF24",
+  // Secondary accent — soft violet (categorical)
+  violet: "#7C5CFF",
+  violetBright: "#9B82FF",
+  violetDim: "rgba(124,92,255,0.14)",
+  violetDimStrong: "rgba(124,92,255,0.24)",
 
-  // Card accents
-  purple: "#8B5CF6",
-  purpleDim: "rgba(139,92,246,0.15)",
-  cyan: "#22D3EE",
-  cyanDim: "rgba(34,211,238,0.12)",
-  indigo: "#6366F1",
+  // Semantic — market colors
+  success: "#22D39A",
+  successBright: "#3BE8AE",
+  successDim: "rgba(34,211,154,0.14)",
+  error: "#FF5A6E",
+  errorBright: "#FF7A8B",
+  errorDim: "rgba(255,90,110,0.14)",
+  warning: "#FFB547",
+  warningDim: "rgba(255,181,71,0.14)",
+  gold: "#FFC857",
+
+  // Categorical palette — for charts / allocation
+  cat1: "#00E0A4", // mint
+  cat2: "#7C5CFF", // violet
+  cat3: "#22D3EE", // cyan
+  cat4: "#FFB547", // amber
+  cat5: "#FF6B9D", // pink
 };
 
 export const spacing = {
@@ -65,3 +80,25 @@ export const borderRadius = {
   xxl: 28,
   full: 9999,
 };
+
+// Tabular numbers — financial data should always be monospaced-figure aligned
+export const tabular = {
+  fontVariant: ["tabular-nums" as const],
+};
+
+// Standard card shadow for elevated surfaces
+export const cardShadow = {
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.5,
+  shadowRadius: 16,
+  elevation: 8,
+};
+
+export const glowShadow = (color: string) => ({
+  shadowColor: color,
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.5,
+  shadowRadius: 12,
+  elevation: 6,
+});

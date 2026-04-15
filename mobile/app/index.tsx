@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
+import { View, Text, StyleSheet, Animated, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../lib/auth";
 import { colors, fontSize, spacing } from "../lib/theme";
@@ -45,13 +45,18 @@ export default function Splash() {
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoLetter}>N</Text>
+        <Image
+          source={require("../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <View style={styles.taglineRow}>
+          <View style={styles.taglineDot} />
+          <Text style={styles.tagline}>PORTFOLIO INTELLIGENCE</Text>
+          <View style={styles.taglineDot} />
         </View>
-        <Text style={styles.name}>navnit</Text>
-        <Text style={styles.tagline}>your wealth, unified</Text>
       </Animated.View>
-      <Text style={styles.footer}>built for clarity</Text>
+      <Text style={styles.footer}>NAVNIT · BUILT FOR CLARITY</Text>
     </View>
   );
 }
@@ -66,44 +71,36 @@ const styles = StyleSheet.create({
   content: {
     alignItems: "center",
   },
-  logoWrap: {
-    width: 80,
+  logo: {
+    width: 260,
     height: 80,
-    borderRadius: 40,
-    borderWidth: 1,
-    borderColor: colors.borderGlow,
+    marginBottom: spacing.md,
+  },
+  taglineRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceGlass,
+    gap: spacing.sm,
+    marginTop: spacing.md,
   },
-  logoLetter: {
-    fontSize: 40,
-    fontWeight: "100",
-    color: colors.text,
-    letterSpacing: 4,
-  },
-  name: {
-    fontSize: fontSize.xl,
-    fontWeight: "200",
-    color: colors.text,
-    letterSpacing: 10,
-    marginTop: spacing.lg,
-    textTransform: "lowercase",
+  taglineDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.accent,
   },
   tagline: {
-    fontSize: fontSize.xs,
-    color: colors.textTertiary,
-    marginTop: spacing.sm,
-    letterSpacing: 4,
-    textTransform: "lowercase",
+    fontSize: fontSize.xxs,
+    color: colors.accent,
+    letterSpacing: 2.5,
+    fontWeight: "700",
   },
   footer: {
     position: "absolute",
     bottom: 50,
-    fontSize: fontSize.xxs,
+    fontSize: 9,
     color: colors.textMuted,
-    letterSpacing: 3,
-    textTransform: "uppercase",
+    letterSpacing: 2,
+    fontWeight: "600",
   },
 });
 

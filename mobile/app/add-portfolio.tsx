@@ -20,6 +20,7 @@ export default function AddPortfolio() {
   const [boId, setBoId] = useState("");
   const [dob, setDob] = useState("");
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -59,21 +60,37 @@ export default function AddPortfolio() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-          <Text style={styles.backText}>← back</Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.back}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
 
         <View style={styles.heroSection}>
-          <Text style={styles.title}>link your{"\n"}portfolio</Text>
+          <View style={styles.brandPill}>
+            <View style={styles.brandDot} />
+            <Text style={styles.brandPillText}>SECURE · CDSL VERIFIED</Text>
+          </View>
+          <Text style={styles.title}>
+            Link your{"\n"}
+            <Text style={styles.titleAccent}>portfolio</Text>
+          </Text>
           <Text style={styles.subtitle}>
-            we'll fetch your holdings directly from CDSL via a secure OTP verification
+            We'll fetch your holdings directly from CDSL via a secure OTP verification
           </Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>PAN</Text>
-            <View style={styles.inputWrap}>
+            <View
+              style={[
+                styles.inputWrap,
+                focused === "pan" && styles.inputWrapFocused,
+              ]}
+            >
               <TextInput
                 style={styles.input}
                 value={pan}
@@ -82,13 +99,20 @@ export default function AddPortfolio() {
                 placeholderTextColor={colors.textMuted}
                 autoCapitalize="characters"
                 maxLength={10}
+                onFocus={() => setFocused("pan")}
+                onBlur={() => setFocused(null)}
               />
             </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>CDSL BO ID</Text>
-            <View style={styles.inputWrap}>
+            <View
+              style={[
+                styles.inputWrap,
+                focused === "boid" && styles.inputWrapFocused,
+              ]}
+            >
               <TextInput
                 style={styles.input}
                 value={boId}
@@ -97,16 +121,23 @@ export default function AddPortfolio() {
                 placeholderTextColor={colors.textMuted}
                 keyboardType="number-pad"
                 maxLength={16}
+                onFocus={() => setFocused("boid")}
+                onBlur={() => setFocused(null)}
               />
             </View>
             <Text style={styles.hint}>
-              find this on your broker app under demat details
+              Find this on your broker app under demat details
             </Text>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>DATE OF BIRTH</Text>
-            <View style={styles.inputWrap}>
+            <View
+              style={[
+                styles.inputWrap,
+                focused === "dob" && styles.inputWrapFocused,
+              ]}
+            >
               <TextInput
                 style={styles.input}
                 value={dob}
@@ -115,6 +146,8 @@ export default function AddPortfolio() {
                 placeholderTextColor={colors.textMuted}
                 keyboardType="numbers-and-punctuation"
                 maxLength={10}
+                onFocus={() => setFocused("dob")}
+                onBlur={() => setFocused(null)}
               />
             </View>
           </View>
@@ -129,29 +162,56 @@ export default function AddPortfolio() {
               <View style={styles.loadingRow}>
                 <ActivityIndicator color={colors.bg} size="small" />
                 <Text style={[styles.buttonText, { marginLeft: 8 }]}>
-                  solving captcha...
+                  Solving captcha...
                 </Text>
               </View>
             ) : (
-              <Text style={styles.buttonText}>request otp</Text>
+              <>
+                <Text style={styles.buttonText}>Request OTP</Text>
+                <Text style={styles.buttonArrow}>→</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>
 
         {/* Info card */}
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>how it works</Text>
-          <View style={styles.infoStep}>
-            <Text style={styles.stepNum}>1</Text>
-            <Text style={styles.stepText}>we securely connect to CDSL using your details</Text>
+          <View style={styles.infoAccent} />
+          <View style={styles.infoHeader}>
+            <Text style={styles.infoTitle}>HOW IT WORKS</Text>
           </View>
           <View style={styles.infoStep}>
-            <Text style={styles.stepNum}>2</Text>
-            <Text style={styles.stepText}>you verify with an OTP sent to your registered mobile</Text>
+            <View style={styles.stepNumWrap}>
+              <Text style={styles.stepNum}>1</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.stepTitle}>Connect</Text>
+              <Text style={styles.stepText}>
+                We securely connect to CDSL using your details
+              </Text>
+            </View>
           </View>
           <View style={styles.infoStep}>
-            <Text style={styles.stepNum}>3</Text>
-            <Text style={styles.stepText}>your complete portfolio is fetched and displayed</Text>
+            <View style={styles.stepNumWrap}>
+              <Text style={styles.stepNum}>2</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.stepTitle}>Verify</Text>
+              <Text style={styles.stepText}>
+                You verify with an OTP sent to your registered mobile
+              </Text>
+            </View>
+          </View>
+          <View style={styles.infoStep}>
+            <View style={styles.stepNumWrap}>
+              <Text style={styles.stepNum}>3</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.stepTitle}>View</Text>
+              <Text style={styles.stepText}>
+                Your complete portfolio is fetched and displayed
+              </Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -167,31 +227,63 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxxl,
   },
   back: { alignSelf: "flex-start", marginBottom: spacing.xl },
-  backText: { color: colors.textTertiary, fontSize: fontSize.sm, letterSpacing: 1 },
+  backText: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    letterSpacing: 0.3,
+    fontWeight: "500",
+  },
 
   heroSection: { marginBottom: spacing.xl },
+  brandPill: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accentDim,
+    borderWidth: 1,
+    borderColor: colors.borderGlow,
+    marginBottom: spacing.md,
+  },
+  brandDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accentBright,
+  },
+  brandPillText: {
+    fontSize: 10,
+    color: colors.accentBright,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+  },
   title: {
     fontSize: fontSize.xxl,
-    fontWeight: "200",
+    fontWeight: "500",
     color: colors.text,
-    letterSpacing: 1,
-    lineHeight: 44,
+    letterSpacing: -0.8,
+    lineHeight: 42,
+  },
+  titleAccent: {
+    color: colors.accent,
   },
   subtitle: {
     fontSize: fontSize.sm,
-    color: colors.textTertiary,
+    color: colors.textSecondary,
     marginTop: spacing.md,
     lineHeight: 22,
-    letterSpacing: 0.3,
   },
 
   form: { gap: spacing.md },
-  inputGroup: { gap: spacing.xs },
+  inputGroup: { gap: 6 },
   label: {
-    fontSize: fontSize.xxs,
+    fontSize: 10,
     color: colors.textTertiary,
-    letterSpacing: 3,
-    fontWeight: "500",
+    letterSpacing: 1.5,
+    fontWeight: "700",
   },
   inputWrap: {
     borderWidth: 1,
@@ -200,67 +292,104 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     overflow: "hidden",
   },
+  inputWrapFocused: {
+    borderColor: colors.borderGlow,
+    backgroundColor: colors.surfaceElevated,
+  },
   input: {
     padding: spacing.md + 2,
     fontSize: fontSize.md,
     color: colors.text,
-    letterSpacing: 1,
+    letterSpacing: 0.8,
   },
   hint: {
-    fontSize: fontSize.xxs,
-    color: colors.textMuted,
-    letterSpacing: 0.5,
-    marginTop: 2,
+    fontSize: 11,
+    color: colors.textTertiary,
+    marginTop: 4,
+    marginLeft: 4,
   },
   button: {
-    backgroundColor: colors.text,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.accent,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md + 2,
-    alignItems: "center",
     marginTop: spacing.sm,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: {
     color: colors.bg,
     fontSize: fontSize.md,
-    fontWeight: "600",
-    letterSpacing: 2,
-    textTransform: "lowercase",
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  buttonArrow: {
+    color: colors.bg,
+    fontSize: fontSize.md,
+    fontWeight: "700",
   },
   loadingRow: { flexDirection: "row", alignItems: "center" },
 
+  // Info card
   infoCard: {
     marginTop: spacing.xxl,
-    backgroundColor: colors.surfaceGlass,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.md,
+    overflow: "hidden",
+  },
+  infoAccent: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: colors.violet,
+    opacity: 0.7,
+  },
+  infoHeader: {
+    marginBottom: 4,
   },
   infoTitle: {
-    fontSize: fontSize.xs,
-    color: colors.textTertiary,
-    letterSpacing: 3,
-    textTransform: "lowercase",
-    marginBottom: spacing.xs,
+    fontSize: 11,
+    color: colors.textSecondary,
+    letterSpacing: 1.8,
+    fontWeight: "700",
   },
   infoStep: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.md,
   },
+  stepNumWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.violetDim,
+    borderWidth: 1,
+    borderColor: colors.borderViolet,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   stepNum: {
+    fontSize: fontSize.xs,
+    color: colors.violetBright,
+    fontWeight: "700",
+  },
+  stepTitle: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
-    fontWeight: "200",
-    width: 16,
+    color: colors.text,
+    fontWeight: "600",
   },
   stepText: {
-    flex: 1,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,
     color: colors.textSecondary,
-    lineHeight: 20,
-    letterSpacing: 0.3,
+    lineHeight: 18,
+    marginTop: 2,
   },
 });

@@ -9,6 +9,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
@@ -18,6 +19,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState<string | null>(null);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -45,38 +47,64 @@ export default function Login() {
       <View style={styles.inner}>
         {/* Top section */}
         <View style={styles.topSection}>
-          <View style={styles.logoWrap}>
-            <Text style={styles.logoLetter}>N</Text>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <View style={styles.brandPill}>
+            <View style={styles.brandDot} />
+            <Text style={styles.brandPillText}>PORTFOLIO INTELLIGENCE</Text>
           </View>
-          <Text style={styles.title}>welcome back</Text>
-          <Text style={styles.subtitle}>sign in to continue</Text>
+          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.subtitle}>Sign in to access your portfolio</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
-          <View style={styles.inputWrap}>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="email address"
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>EMAIL ADDRESS</Text>
+            <View
+              style={[
+                styles.inputWrap,
+                focused === "email" && styles.inputWrapFocused,
+              ]}
+            >
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@example.com"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                onFocus={() => setFocused("email")}
+                onBlur={() => setFocused(null)}
+              />
+            </View>
           </View>
 
-          <View style={styles.inputWrap}>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="password"
-              placeholderTextColor={colors.textTertiary}
-              secureTextEntry
-              onSubmitEditing={handleLogin}
-            />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>PASSWORD</Text>
+            <View
+              style={[
+                styles.inputWrap,
+                focused === "password" && styles.inputWrapFocused,
+              ]}
+            >
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry
+                onSubmitEditing={handleLogin}
+                onFocus={() => setFocused("password")}
+                onBlur={() => setFocused(null)}
+              />
+            </View>
           </View>
 
           <TouchableOpacity
@@ -88,7 +116,10 @@ export default function Login() {
             {loading ? (
               <ActivityIndicator color={colors.bg} size="small" />
             ) : (
-              <Text style={styles.buttonText}>continue</Text>
+              <>
+                <Text style={styles.buttonText}>Continue</Text>
+                <Text style={styles.buttonArrow}>→</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>
@@ -97,10 +128,11 @@ export default function Login() {
         <TouchableOpacity
           onPress={() => router.push("/(auth)/signup")}
           style={styles.link}
+          activeOpacity={0.7}
         >
           <Text style={styles.linkText}>
-            new here?{"  "}
-            <Text style={styles.linkBold}>create account</Text>
+            New here?{"  "}
+            <Text style={styles.linkBold}>Create account →</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -122,38 +154,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: spacing.xxl,
   },
-  logoWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: colors.borderGlow,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceGlass,
+  logo: {
+    width: 220,
+    height: 70,
     marginBottom: spacing.lg,
   },
-  logoLetter: {
-    fontSize: 28,
-    fontWeight: "100",
-    color: colors.text,
-    letterSpacing: 2,
+  brandPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accentDim,
+    borderWidth: 1,
+    borderColor: colors.borderGlow,
+    marginBottom: spacing.lg,
+  },
+  brandDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accentBright,
+  },
+  brandPillText: {
+    fontSize: 10,
+    color: colors.accentBright,
+    fontWeight: "700",
+    letterSpacing: 1.2,
   },
   title: {
     fontSize: fontSize.xxl,
-    fontWeight: "200",
+    fontWeight: "500",
     color: colors.text,
-    letterSpacing: 2,
-    textTransform: "lowercase",
+    letterSpacing: -0.8,
   },
   subtitle: {
     fontSize: fontSize.sm,
-    color: colors.textTertiary,
-    marginTop: spacing.sm,
-    letterSpacing: 2,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    letterSpacing: 0.2,
   },
   form: {
-    gap: spacing.sm,
+    gap: spacing.md,
+  },
+  inputGroup: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 10,
+    color: colors.textTertiary,
+    letterSpacing: 1.5,
+    fontWeight: "700",
   },
   inputWrap: {
     borderWidth: 1,
@@ -162,40 +214,51 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     overflow: "hidden",
   },
+  inputWrapFocused: {
+    borderColor: colors.borderGlow,
+    backgroundColor: colors.surfaceElevated,
+  },
   input: {
     padding: spacing.md + 2,
     fontSize: fontSize.md,
     color: colors.text,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   button: {
-    backgroundColor: colors.text,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.accent,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md + 2,
-    alignItems: "center",
     marginTop: spacing.sm,
   },
   buttonDisabled: {
-    opacity: 0.4,
+    opacity: 0.5,
   },
   buttonText: {
     color: colors.bg,
     fontSize: fontSize.md,
-    fontWeight: "600",
-    letterSpacing: 2,
-    textTransform: "lowercase",
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  buttonArrow: {
+    color: colors.bg,
+    fontSize: fontSize.md,
+    fontWeight: "700",
   },
   link: {
     marginTop: spacing.xxl,
     alignItems: "center",
   },
   linkText: {
-    color: colors.textTertiary,
+    color: colors.textSecondary,
     fontSize: fontSize.sm,
-    letterSpacing: 1,
+    letterSpacing: 0.3,
   },
   linkBold: {
-    color: colors.text,
-    fontWeight: "500",
+    color: colors.accent,
+    fontWeight: "600",
   },
 });

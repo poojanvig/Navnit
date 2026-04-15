@@ -1,7 +1,21 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Image,
+  ScrollView,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../lib/auth";
-import { colors, spacing, fontSize, borderRadius } from "../../lib/theme";
+import {
+  colors,
+  spacing,
+  fontSize,
+  borderRadius,
+  cardShadow,
+} from "../../lib/theme";
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -24,122 +38,239 @@ export default function Profile() {
   const initial = user?.name?.[0]?.toUpperCase() || "?";
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.pageTitle}>profile</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>Profile</Text>
 
-        {/* Avatar card */}
-        <View style={styles.avatarCard}>
-          <View style={styles.avatarRing}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initial}</Text>
-            </View>
+      {/* Avatar card */}
+      <View style={styles.avatarCard}>
+        <View style={styles.avatarAccentStrip} />
+        <View style={styles.avatarRing}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initial}</Text>
           </View>
-          <Text style={styles.name}>{user?.name || "Unknown"}</Text>
-          <Text style={styles.email}>{user?.email || ""}</Text>
+          <View style={styles.verifiedBadge}>
+            <Text style={styles.verifiedTick}>✓</Text>
+          </View>
         </View>
-
-        {/* Menu */}
-        <View style={styles.menu}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/add-portfolio")}
-            activeOpacity={0.7}
-          >
-            <View style={styles.menuLeft}>
-              <View style={[styles.menuIcon, { backgroundColor: colors.purpleDim }]}>
-                <Text style={[styles.menuIconText, { color: colors.purple }]}>+</Text>
-              </View>
-              <Text style={styles.menuText}>link new portfolio</Text>
-            </View>
-            <Text style={styles.menuArrow}>→</Text>
-          </TouchableOpacity>
-
-          <View style={styles.menuDivider} />
-
-          <TouchableOpacity style={styles.menuItem} onPress={handleLogout} activeOpacity={0.7}>
-            <View style={styles.menuLeft}>
-              <View style={[styles.menuIcon, { backgroundColor: colors.errorDim }]}>
-                <Text style={[styles.menuIconText, { color: colors.error }]}>↗</Text>
-              </View>
-              <Text style={[styles.menuText, { color: colors.error }]}>logout</Text>
-            </View>
-            <Text style={[styles.menuArrow, { color: colors.error }]}>→</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>navnit</Text>
-          <Text style={styles.footerVersion}>v1.0.0 · mvp</Text>
+        <Text style={styles.name}>{user?.name || "Unknown"}</Text>
+        <Text style={styles.email}>{user?.email || ""}</Text>
+        <View style={styles.statusPill}>
+          <View style={styles.statusDot} />
+          <Text style={styles.statusText}>VERIFIED ACCOUNT</Text>
         </View>
       </View>
-    </View>
+
+      {/* Menu */}
+      <Text style={styles.sectionLabel}>Account</Text>
+      <View style={styles.menu}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => router.push("/add-portfolio")}
+          activeOpacity={0.7}
+        >
+          <View style={styles.menuLeft}>
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentDim }]}>
+              <Text style={[styles.menuIconText, { color: colors.accent }]}>+</Text>
+            </View>
+            <View>
+              <Text style={styles.menuText}>Link New Portfolio</Text>
+              <Text style={styles.menuSub}>Connect another demat account</Text>
+            </View>
+          </View>
+          <Text style={styles.menuArrow}>→</Text>
+        </TouchableOpacity>
+
+        <View style={styles.menuDivider} />
+
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+          <View style={styles.menuLeft}>
+            <View style={[styles.menuIcon, { backgroundColor: colors.violetDim }]}>
+              <Text style={[styles.menuIconText, { color: colors.violetBright }]}>◈</Text>
+            </View>
+            <View>
+              <Text style={styles.menuText}>Security</Text>
+              <Text style={styles.menuSub}>Password, 2FA, sessions</Text>
+            </View>
+          </View>
+          <Text style={styles.menuArrow}>→</Text>
+        </TouchableOpacity>
+
+        <View style={styles.menuDivider} />
+
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+          <View style={styles.menuLeft}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.warningDim }]}
+            >
+              <Text style={[styles.menuIconText, { color: colors.warning }]}>?</Text>
+            </View>
+            <View>
+              <Text style={styles.menuText}>Help & Support</Text>
+              <Text style={styles.menuSub}>FAQs, contact us</Text>
+            </View>
+          </View>
+          <Text style={styles.menuArrow}>→</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Logout */}
+      <TouchableOpacity
+        style={styles.logoutBtn}
+        onPress={handleLogout}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Image
+          source={require("../../assets/logo.png")}
+          style={styles.footerLogo}
+          resizeMode="contain"
+        />
+        <Text style={styles.footerVersion}>NAVNIT INSURANCE BROKING PVT. LTD.</Text>
+        <Text style={styles.footerVersionSub}>v1.0.0 · MVP BUILD</Text>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { paddingHorizontal: spacing.lg, paddingTop: 60 },
+  content: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: 60,
+    paddingBottom: 120,
+  },
   pageTitle: {
     fontSize: fontSize.xl,
-    fontWeight: "200",
+    fontWeight: "500",
     color: colors.text,
-    letterSpacing: 2,
-    textTransform: "lowercase",
-    marginBottom: spacing.xl,
+    letterSpacing: -0.5,
+    marginBottom: spacing.lg,
   },
 
+  // Avatar card
   avatarCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.xxl,
-    paddingVertical: spacing.xxl,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderLight,
+    overflow: "hidden",
+    ...cardShadow,
+  },
+  avatarAccentStrip: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: colors.accent,
+    opacity: 0.8,
   },
   avatarRing: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    borderWidth: 1,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    borderWidth: 1.5,
     borderColor: colors.borderGlow,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surfaceGlass,
+    backgroundColor: colors.accentDim,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 78,
+    height: 78,
+    borderRadius: 39,
     backgroundColor: colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
-    fontSize: fontSize.xxl,
-    fontWeight: "100",
+    fontSize: 40,
+    fontWeight: "300",
     color: colors.text,
+  },
+  verifiedBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  verifiedTick: {
+    color: colors.bg,
+    fontSize: 11,
+    fontWeight: "800",
   },
   name: {
     fontSize: fontSize.lg,
-    fontWeight: "200",
+    fontWeight: "600",
     color: colors.text,
     marginTop: spacing.md,
-    letterSpacing: 1,
+    letterSpacing: -0.3,
   },
   email: {
     fontSize: fontSize.sm,
-    color: colors.textTertiary,
-    marginTop: spacing.xs,
-    letterSpacing: 0.5,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: spacing.md,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accentDim,
+    borderWidth: 1,
+    borderColor: colors.borderGlow,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accentBright,
+  },
+  statusText: {
+    fontSize: 10,
+    color: colors.accentBright,
+    fontWeight: "700",
+    letterSpacing: 1.2,
   },
 
+  // Section label
+  sectionLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    letterSpacing: 1.8,
+    textTransform: "uppercase",
+    fontWeight: "600",
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+
+  // Menu
   menu: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    marginTop: spacing.md,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: "hidden",
@@ -154,23 +285,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    flex: 1,
   },
   menuIcon: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   menuIconText: {
     fontSize: fontSize.lg,
-    fontWeight: "300",
+    fontWeight: "600",
   },
   menuText: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.sm,
     color: colors.text,
-    letterSpacing: 0.5,
-    fontWeight: "300",
+    fontWeight: "600",
+  },
+  menuSub: {
+    fontSize: 11,
+    color: colors.textTertiary,
+    marginTop: 2,
   },
   menuArrow: {
     fontSize: fontSize.md,
@@ -179,23 +315,48 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     backgroundColor: colors.border,
-    marginHorizontal: spacing.md,
+    marginLeft: spacing.md + 40 + spacing.md,
   },
 
+  // Logout
+  logoutBtn: {
+    marginTop: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.errorDim,
+    backgroundColor: "rgba(255,90,110,0.05)",
+    alignItems: "center",
+  },
+  logoutText: {
+    fontSize: fontSize.sm,
+    color: colors.errorBright,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+
+  // Footer
   footer: {
     alignItems: "center",
-    marginTop: spacing.xxxl,
-    gap: 4,
+    marginTop: spacing.xxl,
+    gap: 6,
   },
-  footerText: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    letterSpacing: 6,
-    textTransform: "lowercase",
+  footerLogo: {
+    width: 160,
+    height: 48,
+    opacity: 0.5,
+    marginBottom: spacing.sm,
   },
   footerVersion: {
-    fontSize: fontSize.xxs,
+    fontSize: 10,
+    color: colors.textTertiary,
+    letterSpacing: 1.5,
+    fontWeight: "600",
+  },
+  footerVersionSub: {
+    fontSize: 9,
     color: colors.textMuted,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
+    fontWeight: "600",
   },
 });
