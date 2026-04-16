@@ -33,21 +33,27 @@ def seed_demo_account():
     """Auto-create the demo account and portfolio if DB is empty."""
     db = SessionLocal()
     try:
-        # Skip if account already exists
-        if db.query(User).filter(User.email == "test@test.com").first():
+        user = db.query(User).filter(User.email == "test@test.com").first()
+
+        if user:
+            # Ensure password is always correct
+            user.password_hash = hash_password("123456")
+            db.commit()
+        else:
+            # Create demo user
+            user = User(
+                name="Poojan",
+                email="test@test.com",
+                password_hash=hash_password("123456"),
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+        # Load seed portfolio data if no portfolio exists
+        if db.query(Portfolio).filter(Portfolio.user_id == user.id).count() > 0:
             return
 
-        # Create demo user
-        user = User(
-            name="Poojan",
-            email="test@test.com",
-            password_hash=hash_password("123456"),
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-
-        # Load seed portfolio data
         seed_file = Path(__file__).parent / "seed_data.json"
         if not seed_file.exists():
             return
