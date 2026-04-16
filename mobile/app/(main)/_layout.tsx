@@ -1,5 +1,7 @@
 import { Tabs } from "expo-router";
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 import { colors, borderRadius } from "../../lib/theme";
 
 function TabIcon({
@@ -9,11 +11,9 @@ function TabIcon({
   focused: boolean;
   icon: "dashboard" | "holdings" | "profile";
 }) {
-  // Dashboard: 4-square grid
-  if (icon === "dashboard") {
-    return (
-      <View style={styles.iconOuter}>
-        {focused && <View style={styles.glowDot} />}
+  const content = (() => {
+    if (icon === "dashboard") {
+      return (
         <View style={styles.gridIcon}>
           {[0, 1, 2, 3].map((i) => (
             <View
@@ -25,49 +25,52 @@ function TabIcon({
             />
           ))}
         </View>
-      </View>
-    );
-  }
-
-  // Holdings: bar chart
-  if (icon === "holdings") {
-    return (
-      <View style={styles.iconOuter}>
-        {focused && <View style={styles.glowDot} />}
+      );
+    }
+    if (icon === "holdings") {
+      return (
         <View style={styles.barChart}>
           <View style={[styles.bar, { height: 8 }, focused && styles.barActive]} />
           <View style={[styles.bar, { height: 14 }, focused && styles.barActive]} />
           <View style={[styles.bar, { height: 11 }, focused && styles.barActive]} />
           <View style={[styles.bar, { height: 18 }, focused && styles.barActive]} />
         </View>
-      </View>
-    );
-  }
-
-  // Profile: person silhouette
-  return (
-    <View style={styles.iconOuter}>
-      {focused && <View style={styles.glowDot} />}
+      );
+    }
+    return (
       <View style={styles.personIcon}>
         <View style={[styles.personHead, focused && styles.personActive]} />
         <View style={[styles.personBody, focused && styles.personActive]} />
       </View>
+    );
+  })();
+
+  return (
+    <View style={styles.iconOuter}>
+      {focused && <View style={styles.activePill} />}
+      {content}
     </View>
   );
 }
 
 export default function MainLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomOffset =
+    Platform.OS === "web"
+      ? 16
+      : Math.max(insets.bottom + 8, Platform.OS === "android" ? 16 : 24);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
           position: "absolute",
-          bottom: Platform.OS === "web" ? 16 : 24,
+          bottom: bottomOffset,
           left: 20,
           right: 20,
           height: 68,
-          backgroundColor: "rgba(15,17,20,0.94)",
+          backgroundColor: "rgba(10,10,10,0.94)",
           borderRadius: borderRadius.xxl,
           borderTopWidth: 0,
           borderWidth: 1,
@@ -83,14 +86,15 @@ export default function MainLayout() {
           }),
           shadowColor: "#000",
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.3,
+          shadowOpacity: 0.4,
           shadowRadius: 20,
           elevation: 20,
         },
         tabBarItemStyle: {
-          paddingVertical: 10,
+          paddingVertical: 12,
+          minHeight: 48,
         },
-        tabBarActiveTintColor: colors.accent,
+        tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarLabelStyle: {
           fontSize: 10,
@@ -100,11 +104,19 @@ export default function MainLayout() {
           marginTop: 2,
         },
       }}
+      screenListeners={{
+        tabPress: () => {
+          if (Platform.OS !== "web") {
+            Haptics.selectionAsync();
+          }
+        },
+      }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Dashboard",
+          tabBarAccessibilityLabel: "Dashboard tab",
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon="dashboard" />
           ),
@@ -114,6 +126,7 @@ export default function MainLayout() {
         name="holdings"
         options={{
           title: "Holdings",
+          tabBarAccessibilityLabel: "Holdings tab",
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon="holdings" />
           ),
@@ -123,6 +136,7 @@ export default function MainLayout() {
         name="profile"
         options={{
           title: "Profile",
+          tabBarAccessibilityLabel: "Profile tab",
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon="profile" />
           ),
@@ -133,26 +147,18 @@ export default function MainLayout() {
 }
 
 const styles = StyleSheet.create({
-  // Icon container
   iconOuter: {
-    width: 36,
-    height: 28,
+    width: 40,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  // Active glow dot above icon
-  glowDot: {
-    position: "absolute",
-    top: -2,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: colors.accent,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
+  // Active pill background behind icon
+  activePill: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.10)",
+    borderRadius: 12,
   },
 
   // Dashboard: 2x2 grid
@@ -172,7 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   gridSquareActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
   },
 
   // Holdings: bar chart
@@ -188,7 +194,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   barActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
   },
 
   // Profile: person
@@ -210,6 +216,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   personActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
   },
 });

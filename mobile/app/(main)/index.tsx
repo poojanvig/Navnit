@@ -6,12 +6,16 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
+  Platform,
   Image,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getPortfolios, getPortfolio } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
+import { fmtINR, fmtINRFull } from "../../lib/format";
+import { DashboardSkeleton } from "../../components/Skeleton";
 import {
   colors,
   spacing,
@@ -24,6 +28,7 @@ import {
 export default function Dashboard() {
   const { user } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [, setPortfolios] = useState<any[]>([]);
   const [activeData, setActiveData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -50,22 +55,25 @@ export default function Dashboard() {
     }, [])
   );
 
-  const fmtINR = (v: number) => {
-    if (v === undefined || v === null) return "₹0";
-    const abs = Math.abs(v);
-    const sign = v < 0 ? "-" : "";
-    if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(2)}Cr`;
-    if (abs >= 100000) return `${sign}₹${(abs / 100000).toFixed(2)}L`;
-    return `${sign}₹${abs.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+  const onRefresh = () => {
+    if (Platform.OS !== "web") Haptics.selectionAsync();
+    setRefreshing(true);
+    load();
   };
-
-  const fmtINRFull = (v: number) =>
-    `₹${Math.abs(v).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color={colors.accent} />
+      <View style={[styles.container, { paddingTop: insets.top + spacing.md }]}>
+        <View style={styles.content}>
+          <View style={styles.topBar}>
+            <Image
+              source={require("../../assets/logo.png")}
+              style={styles.brandLogo}
+              resizeMode="contain"
+            />
+          </View>
+          <DashboardSkeleton />
+        </View>
       </View>
     );
   }
@@ -140,16 +148,15 @@ export default function Dashboard() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => {
-            setRefreshing(true);
-            load();
-          }}
-          tintColor={colors.accent}
+          onRefresh={onRefresh}
+          tintColor={colors.text}
+          colors={["#FFFFFF"]}
+          progressBackgroundColor="#111111"
         />
       }
     >
@@ -190,8 +197,13 @@ export default function Dashboard() {
             </Text>
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() => router.push("/add-portfolio")}
+              onPress={() => {
+                if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push("/add-portfolio");
+              }}
               activeOpacity={0.85}
+              accessibilityLabel="Link your portfolio"
+              accessibilityRole="button"
             >
               <Text style={styles.primaryBtnText}>Link Portfolio</Text>
               <Text style={styles.primaryBtnArrow}>→</Text>
@@ -217,6 +229,7 @@ export default function Dashboard() {
           {/* Hero Card — Total Portfolio */}
           <View style={styles.heroCard}>
             <View style={styles.heroAccentStrip} />
+            <View style={styles.heroInnerHighlight} />
             <View style={styles.heroTop}>
               <Text style={styles.heroLabel}>Total Portfolio Value</Text>
               <Text style={styles.heroTimestamp}>AS OF {timeStr}</Text>
@@ -284,7 +297,7 @@ export default function Dashboard() {
                 <View
                   style={[
                     styles.allocBarSegment,
-                    { flex: mfPct, backgroundColor: colors.accent },
+                    { flex: mfPct, backgroundColor: colors.text },
                   ]}
                 />
               )}
@@ -300,7 +313,7 @@ export default function Dashboard() {
             <View style={styles.row}>
               <View style={styles.allocCard}>
                 <View style={styles.allocCardHeader}>
-                  <View style={[styles.dot, { backgroundColor: colors.accent }]} />
+                  <View style={[styles.dot, { backgroundColor: colors.text }]} />
                   <Text style={styles.allocLabel}>Mutual Funds</Text>
                 </View>
                 <Text style={styles.allocValue}>{fmtINR(mfValue)}</Text>
@@ -396,7 +409,7 @@ export default function Dashboard() {
                     {
                       width: `${Math.min(100, Math.max(5, (totalVal / totalCost) * 100))}%`,
                       backgroundColor:
-                        totalGain >= 0 ? colors.success : colors.error,
+                        totalGain >= 0 ? colors.text : colors.errorBright,
                     },
                   ]}
                 />
@@ -412,6 +425,8 @@ export default function Dashboard() {
                 <TouchableOpacity
                   onPress={() => router.push("/(main)/holdings")}
                   activeOpacity={0.7}
+                  accessibilityLabel="See all holdings"
+                  accessibilityRole="button"
                 >
                   <Text style={styles.seeAll}>See all →</Text>
                 </TouchableOpacity>
@@ -420,7 +435,7 @@ export default function Dashboard() {
                 const pct =
                   totalPortfolio > 0 ? (h.value / totalPortfolio) * 100 : 0;
                 const isMF = h.type === "MF";
-                const accentColor = isMF ? colors.accent : colors.violet;
+                const accentColor = isMF ? colors.text : colors.violet;
                 return (
                   <View key={i} style={styles.holdingCard}>
                     <View
@@ -449,7 +464,7 @@ export default function Dashboard() {
                               <Text
                                 style={[
                                   styles.typeChipText,
-                                  { color: isMF ? colors.accent : colors.violetBright },
+                                  { color: isMF ? colors.text : colors.violetBright },
                                 ]}
                               >
                                 {h.type}
@@ -504,8 +519,13 @@ export default function Dashboard() {
           {/* Fetch button */}
           <TouchableOpacity
             style={styles.fetchBtn}
-            onPress={() => router.push("/add-portfolio")}
+            onPress={() => {
+              if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/add-portfolio");
+            }}
             activeOpacity={0.8}
+            accessibilityLabel="Fetch latest portfolio data"
+            accessibilityRole="button"
           >
             <Text style={styles.fetchBtnIcon}>↻</Text>
             <Text style={styles.fetchBtnText}>Fetch Latest Data</Text>
@@ -527,7 +547,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
     paddingBottom: 120,
   },
 
@@ -557,11 +576,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accentBright,
+    backgroundColor: colors.text,
   },
   liveText: {
     fontSize: 10,
-    color: colors.accentBright,
+    color: colors.text,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -611,7 +630,7 @@ const styles = StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 34,
-    color: colors.accent,
+    color: colors.text,
   },
   emptyTitle: {
     fontSize: fontSize.lg,
@@ -629,7 +648,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
     borderRadius: borderRadius.full,
     paddingVertical: 14,
     paddingHorizontal: spacing.xl,
@@ -663,8 +682,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: colors.accent,
-    opacity: 0.8,
+    backgroundColor: colors.text,
+    opacity: 0.6,
+  },
+  heroInnerHighlight: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.04)",
   },
   heroTop: {
     flexDirection: "row",
@@ -785,6 +812,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+    // Inner highlight for card depth
+    borderTopColor: "rgba(255,255,255,0.04)",
   },
   allocCardHeader: {
     flexDirection: "row",
@@ -830,7 +859,7 @@ const styles = StyleSheet.create({
   },
   allocPctText: {
     fontSize: 10,
-    color: colors.accent,
+    color: colors.text,
     fontWeight: "700",
     ...tabular,
   },
@@ -843,6 +872,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
+    borderTopColor: "rgba(255,255,255,0.04)",
   },
   plCardHeader: {
     flexDirection: "row",
@@ -895,7 +925,7 @@ const styles = StyleSheet.create({
   },
   seeAll: {
     fontSize: 11,
-    color: colors.accent,
+    color: colors.text,
     letterSpacing: 0.8,
     fontWeight: "600",
   },
@@ -907,6 +937,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: "hidden",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   holdingAccent: {
     width: 3,
@@ -999,7 +1034,7 @@ const styles = StyleSheet.create({
   },
   fetchBtnIcon: {
     fontSize: fontSize.md,
-    color: colors.accent,
+    color: colors.text,
   },
   fetchBtnText: {
     color: colors.text,

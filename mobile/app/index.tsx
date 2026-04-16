@@ -86,11 +86,11 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
   },
   tagline: {
     fontSize: fontSize.xxs,
-    color: colors.accent,
+    color: colors.textSecondary,
     letterSpacing: 2.5,
     fontWeight: "700",
   },
@@ -103,4 +103,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-

@@ -1,54 +1,56 @@
+import { TextStyle } from "react-native";
+
 export const colors = {
-  // Backgrounds — layered near-black with slight cool tint
-  bg: "#07080A",
-  bgElevated: "#0B0D11",
-  surface: "#0F1114",
-  surfaceElevated: "#16181D",
-  surfaceAccent: "#1C1F26",
+  // Backgrounds — pure black for OLED, layered greys
+  bg: "#000000",
+  bgElevated: "#0A0A0A",
+  surface: "#111111",
+  surfaceElevated: "#1A1A1A",
+  surfaceAccent: "#222222",
   surfaceGlass: "rgba(255,255,255,0.03)",
 
-  // Borders — subtle, with accent glow variants
+  // Borders — white alphas
   border: "rgba(255,255,255,0.06)",
   borderLight: "rgba(255,255,255,0.10)",
   borderStrong: "rgba(255,255,255,0.16)",
-  borderGlow: "rgba(0,224,164,0.28)",
-  borderViolet: "rgba(124,92,255,0.28)",
+  borderGlow: "rgba(255,255,255,0.22)",
+  borderViolet: "rgba(255,255,255,0.14)",
 
   // Text
-  text: "#F5F7FA",
-  textSecondary: "#9BA1AD",
-  textTertiary: "#5A6070",
-  textMuted: "#2F333C",
+  text: "#FFFFFF",
+  textSecondary: "#A0A0A0",
+  textTertiary: "#606060",
+  textMuted: "#303030",
 
-  // Primary accent — electric mint (analytical / signal color)
-  accent: "#00E0A4",
-  accentBright: "#26F0B8",
-  accentDim: "rgba(0,224,164,0.12)",
-  accentDimStrong: "rgba(0,224,164,0.22)",
+  // Primary accent — pure white
+  accent: "#FFFFFF",
+  accentBright: "#FFFFFF",
+  accentDim: "rgba(255,255,255,0.08)",
+  accentDimStrong: "rgba(255,255,255,0.16)",
 
-  // Secondary accent — soft violet (categorical)
-  violet: "#7C5CFF",
-  violetBright: "#9B82FF",
-  violetDim: "rgba(124,92,255,0.14)",
-  violetDimStrong: "rgba(124,92,255,0.24)",
+  // Secondary accent — mid grey
+  violet: "#888888",
+  violetBright: "#AAAAAA",
+  violetDim: "rgba(255,255,255,0.06)",
+  violetDimStrong: "rgba(255,255,255,0.12)",
 
-  // Semantic — market colors
-  success: "#22D39A",
-  successBright: "#3BE8AE",
-  successDim: "rgba(34,211,154,0.14)",
-  error: "#FF5A6E",
-  errorBright: "#FF7A8B",
-  errorDim: "rgba(255,90,110,0.14)",
-  warning: "#FFB547",
-  warningDim: "rgba(255,181,71,0.14)",
-  gold: "#FFC857",
+  // Semantic — gain = bright white, loss = muted grey
+  success: "#FFFFFF",
+  successBright: "#FFFFFF",
+  successDim: "rgba(255,255,255,0.10)",
+  error: "#999999",
+  errorBright: "#777777",
+  errorDim: "rgba(255,255,255,0.06)",
+  warning: "#CCCCCC",
+  warningDim: "rgba(255,255,255,0.08)",
+  gold: "#DDDDDD",
 
-  // Categorical palette — for charts / allocation
-  cat1: "#00E0A4", // mint
-  cat2: "#7C5CFF", // violet
-  cat3: "#22D3EE", // cyan
-  cat4: "#FFB547", // amber
-  cat5: "#FF6B9D", // pink
+  // Categorical palette — greyscale steps for charts
+  cat1: "#FFFFFF",
+  cat2: "#AAAAAA",
+  cat3: "#888888",
+  cat4: "#666666",
+  cat5: "#444444",
 };
 
 export const spacing = {
@@ -86,11 +88,53 @@ export const tabular = {
   fontVariant: ["tabular-nums" as const],
 };
 
-// Standard card shadow for elevated surfaces
+// Typography scale — use these for consistent text styles
+export const typography = {
+  displayLg: {
+    fontSize: fontSize.hero,
+    fontWeight: "300",
+    letterSpacing: -1.5,
+    color: colors.text,
+  } as TextStyle,
+  h1: {
+    fontSize: fontSize.xxl,
+    fontWeight: "500",
+    letterSpacing: -0.8,
+    color: colors.text,
+  } as TextStyle,
+  h2: {
+    fontSize: fontSize.xl,
+    fontWeight: "400",
+    letterSpacing: -0.5,
+    color: colors.text,
+  } as TextStyle,
+  body: {
+    fontSize: fontSize.sm,
+    fontWeight: "400",
+    letterSpacing: 0.2,
+    lineHeight: 20,
+    color: colors.textSecondary,
+  } as TextStyle,
+  caption: {
+    fontSize: fontSize.xs,
+    fontWeight: "500",
+    letterSpacing: 0.3,
+    color: colors.textTertiary,
+  } as TextStyle,
+  label: {
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 1.8,
+    textTransform: "uppercase",
+    color: colors.textSecondary,
+  } as TextStyle,
+};
+
+// Standard card shadow for elevated surfaces (with inner highlight)
 export const cardShadow = {
   shadowColor: "#000",
   shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.5,
+  shadowOpacity: 0.6,
   shadowRadius: 16,
   elevation: 8,
 };

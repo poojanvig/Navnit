@@ -12,6 +12,7 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { useAuth } from "../../lib/auth";
 import { colors, spacing, fontSize, borderRadius } from "../../lib/theme";
 
@@ -28,6 +29,7 @@ export default function Login() {
       Alert.alert("", "Please fill in all fields");
       return;
     }
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
       await login(email.trim().toLowerCase(), password);
@@ -45,7 +47,6 @@ export default function Login() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.inner}>
-        {/* Top section */}
         <View style={styles.topSection}>
           <Image
             source={require("../../assets/logo.png")}
@@ -60,7 +61,6 @@ export default function Login() {
           <Text style={styles.subtitle}>Sign in to access your portfolio</Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>EMAIL ADDRESS</Text>
@@ -81,6 +81,7 @@ export default function Login() {
                 autoCorrect={false}
                 onFocus={() => setFocused("email")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="Email address"
               />
             </View>
           </View>
@@ -103,6 +104,7 @@ export default function Login() {
                 onSubmitEditing={handleLogin}
                 onFocus={() => setFocused("password")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="Password"
               />
             </View>
           </View>
@@ -112,6 +114,8 @@ export default function Login() {
             onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityLabel="Continue to sign in"
+            accessibilityRole="button"
           >
             {loading ? (
               <ActivityIndicator color={colors.bg} size="small" />
@@ -124,11 +128,12 @@ export default function Login() {
           </TouchableOpacity>
         </View>
 
-        {/* Footer */}
         <TouchableOpacity
           onPress={() => router.push("/(auth)/signup")}
           style={styles.link}
           activeOpacity={0.7}
+          accessibilityLabel="Create a new account"
+          accessibilityRole="link"
         >
           <Text style={styles.linkText}>
             New here?{"  "}
@@ -175,11 +180,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accentBright,
+    backgroundColor: colors.text,
   },
   brandPillText: {
     fontSize: 10,
-    color: colors.accentBright,
+    color: colors.text,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -229,10 +234,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md + 2,
     marginTop: spacing.sm,
+    minHeight: 48,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -258,7 +264,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   linkBold: {
-    color: colors.accent,
+    color: colors.text,
     fontWeight: "600",
   },
 });

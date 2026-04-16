@@ -4,11 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   TouchableOpacity,
+  RefreshControl,
+  Platform,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 import { getPortfolios, getPortfolio } from "../../lib/api";
+import { fmtCurrency } from "../../lib/format";
+import { HoldingsSkeleton } from "../../components/Skeleton";
 import {
   colors,
   spacing,
@@ -19,39 +24,44 @@ import {
 } from "../../lib/theme";
 
 export default function Holdings() {
+  const insets = useSafeAreaInsets();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<"mf" | "demat">("mf");
+
+  const load = async () => {
+    try {
+      const list = await getPortfolios();
+      if (list.length > 0) {
+        const d = await getPortfolio(list[0].id);
+        setData(d);
+      }
+    } catch {
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        try {
-          const list = await getPortfolios();
-          if (list.length > 0) {
-            const d = await getPortfolio(list[0].id);
-            setData(d);
-          }
-        } catch {
-        } finally {
-          setLoading(false);
-        }
-      })();
+      load();
     }, [])
   );
 
-  const fmtINR = (v: number) =>
-    v?.toLocaleString("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }) ?? "₹0";
+  const onRefresh = () => {
+    if (Platform.OS !== "web") Haptics.selectionAsync();
+    setRefreshing(true);
+    load();
+  };
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color={colors.accent} />
+      <View style={[styles.container, { paddingTop: insets.top + spacing.md }]}>
+        <View style={{ paddingHorizontal: spacing.lg }}>
+          <HoldingsSkeleton />
+        </View>
       </View>
     );
   }
@@ -74,10 +84,22 @@ export default function Holdings() {
     });
   });
 
-  const accentColor = tab === "mf" ? colors.accent : colors.violet;
+  const accentColor = tab === "mf" ? colors.text : colors.violet;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.text}
+          colors={["#FFFFFF"]}
+          progressBackgroundColor="#111111"
+        />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Holdings</Text>
         <Text style={styles.subtitle}>
@@ -95,13 +117,18 @@ export default function Holdings() {
               { borderColor: colors.borderGlow, backgroundColor: colors.accentDim },
             ],
           ]}
-          onPress={() => setTab("mf")}
+          onPress={() => {
+            setTab("mf");
+            if (Platform.OS !== "web") Haptics.selectionAsync();
+          }}
           activeOpacity={0.8}
+          accessibilityLabel="Mutual funds tab"
+          accessibilityRole="tab"
         >
           <View
             style={[
               styles.tabDot,
-              { backgroundColor: tab === "mf" ? colors.accent : colors.textTertiary },
+              { backgroundColor: tab === "mf" ? colors.text : colors.textTertiary },
             ]}
           />
           <Text
@@ -115,7 +142,7 @@ export default function Holdings() {
           <Text
             style={[
               styles.tabCount,
-              tab === "mf" && { color: colors.accent },
+              tab === "mf" && { color: colors.text },
             ]}
           >
             {schemes.length}
@@ -126,11 +153,16 @@ export default function Holdings() {
             styles.tab,
             tab === "demat" && [
               styles.tabActive,
-              { borderColor: colors.borderViolet, backgroundColor: colors.violetDim },
+              { borderColor: colors.borderGlow, backgroundColor: colors.accentDim },
             ],
           ]}
-          onPress={() => setTab("demat")}
+          onPress={() => {
+            setTab("demat");
+            if (Platform.OS !== "web") Haptics.selectionAsync();
+          }}
           activeOpacity={0.8}
+          accessibilityLabel="Demat tab"
+          accessibilityRole="tab"
         >
           <View
             style={[
@@ -185,7 +217,7 @@ export default function Holdings() {
                             { backgroundColor: colors.accentDim },
                           ]}
                         >
-                          <Text style={[styles.typeChipText, { color: colors.accent }]}>
+                          <Text style={[styles.typeChipText, { color: colors.text }]}>
                             {s.type}
                           </Text>
                         </View>
@@ -195,7 +227,7 @@ export default function Holdings() {
                       </View>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
-                      <Text style={styles.cardValue}>{fmtINR(s.value || 0)}</Text>
+                      <Text style={styles.cardValue}>{fmtCurrency(s.value || 0)}</Text>
                       <View
                         style={[
                           styles.gainPill,
@@ -233,7 +265,7 @@ export default function Holdings() {
                     </View>
                     <View style={styles.detailItem}>
                       <Text style={styles.detailLabel}>INVESTED</Text>
-                      <Text style={styles.detailValue}>{fmtINR(s.cost || 0)}</Text>
+                      <Text style={styles.detailValue}>{fmtCurrency(s.cost || 0)}</Text>
                     </View>
                     <View style={styles.detailItem}>
                       <Text style={styles.detailLabel}>P&L</Text>
@@ -247,7 +279,7 @@ export default function Holdings() {
                         ]}
                       >
                         {gain >= 0 ? "+" : ""}
-                        {fmtINR(gain)}
+                        {fmtCurrency(gain)}
                       </Text>
                     </View>
                   </View>
@@ -279,7 +311,7 @@ export default function Holdings() {
                     </Text>
                   </View>
                   <View style={{ alignItems: "flex-end" }}>
-                    <Text style={styles.cardValue}>{fmtINR(acct.value || 0)}</Text>
+                    <Text style={styles.cardValue}>{fmtCurrency(acct.value || 0)}</Text>
                     <View
                       style={[
                         styles.statusChip,
@@ -309,7 +341,7 @@ export default function Holdings() {
                           <View style={styles.secRight}>
                             <Text style={styles.secUnits}>{sec.units} units</Text>
                             <Text style={styles.secValue}>
-                              {fmtINR(sec.value || 0)}
+                              {fmtCurrency(sec.value || 0)}
                             </Text>
                           </View>
                         </View>
@@ -338,7 +370,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
     paddingBottom: 120,
   },
   header: {
@@ -379,6 +410,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    minHeight: 48,
   },
   tabActive: {},
   tabDot: {

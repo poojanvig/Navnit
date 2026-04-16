@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { requestOTP } from "../lib/api";
 import { colors, spacing, fontSize, borderRadius } from "../lib/theme";
 
@@ -36,6 +37,7 @@ export default function AddPortfolio() {
       Alert.alert("", "BO ID must be 16 digits");
       return;
     }
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
       const data = await requestOTP(pan.toUpperCase(), boId, dob);
@@ -64,6 +66,8 @@ export default function AddPortfolio() {
           onPress={() => router.back()}
           style={styles.back}
           activeOpacity={0.7}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
@@ -101,6 +105,7 @@ export default function AddPortfolio() {
                 maxLength={10}
                 onFocus={() => setFocused("pan")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="PAN number"
               />
             </View>
           </View>
@@ -123,6 +128,7 @@ export default function AddPortfolio() {
                 maxLength={16}
                 onFocus={() => setFocused("boid")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="CDSL BO ID"
               />
             </View>
             <Text style={styles.hint}>
@@ -148,6 +154,7 @@ export default function AddPortfolio() {
                 maxLength={10}
                 onFocus={() => setFocused("dob")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="Date of birth"
               />
             </View>
           </View>
@@ -157,6 +164,8 @@ export default function AddPortfolio() {
             onPress={handleSubmit}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityLabel="Request OTP"
+            accessibilityRole="button"
           >
             {loading ? (
               <View style={styles.loadingRow}>
@@ -252,11 +261,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accentBright,
+    backgroundColor: colors.text,
   },
   brandPillText: {
     fontSize: 10,
-    color: colors.accentBright,
+    color: colors.text,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -268,7 +277,7 @@ const styles = StyleSheet.create({
     lineHeight: 42,
   },
   titleAccent: {
-    color: colors.accent,
+    color: colors.textSecondary,
   },
   subtitle: {
     fontSize: fontSize.sm,
@@ -313,10 +322,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md + 2,
     marginTop: spacing.sm,
+    minHeight: 48,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: {
@@ -350,7 +360,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: 2,
     backgroundColor: colors.violet,
-    opacity: 0.7,
+    opacity: 0.5,
   },
   infoHeader: {
     marginBottom: 4,

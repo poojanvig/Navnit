@@ -6,8 +6,11 @@ import {
   Alert,
   Image,
   ScrollView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 import { useAuth } from "../../lib/auth";
 import {
   colors,
@@ -20,8 +23,10 @@ import {
 export default function Profile() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleLogout = () => {
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert("", "Are you sure you want to logout?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -40,7 +45,7 @@ export default function Profile() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
       showsVerticalScrollIndicator={false}
     >
       <Text style={styles.pageTitle}>Profile</Text>
@@ -69,12 +74,17 @@ export default function Profile() {
       <View style={styles.menu}>
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => router.push("/add-portfolio")}
+          onPress={() => {
+            if (Platform.OS !== "web") Haptics.selectionAsync();
+            router.push("/add-portfolio");
+          }}
           activeOpacity={0.7}
+          accessibilityLabel="Link new portfolio"
+          accessibilityRole="button"
         >
           <View style={styles.menuLeft}>
             <View style={[styles.menuIcon, { backgroundColor: colors.accentDim }]}>
-              <Text style={[styles.menuIconText, { color: colors.accent }]}>+</Text>
+              <Text style={[styles.menuIconText, { color: colors.text }]}>+</Text>
             </View>
             <View>
               <Text style={styles.menuText}>Link New Portfolio</Text>
@@ -86,7 +96,12 @@ export default function Profile() {
 
         <View style={styles.menuDivider} />
 
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          accessibilityLabel="Security settings"
+          accessibilityRole="button"
+        >
           <View style={styles.menuLeft}>
             <View style={[styles.menuIcon, { backgroundColor: colors.violetDim }]}>
               <Text style={[styles.menuIconText, { color: colors.violetBright }]}>◈</Text>
@@ -101,7 +116,12 @@ export default function Profile() {
 
         <View style={styles.menuDivider} />
 
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          accessibilityLabel="Help and support"
+          accessibilityRole="button"
+        >
           <View style={styles.menuLeft}>
             <View
               style={[styles.menuIcon, { backgroundColor: colors.warningDim }]}
@@ -122,6 +142,8 @@ export default function Profile() {
         style={styles.logoutBtn}
         onPress={handleLogout}
         activeOpacity={0.7}
+        accessibilityLabel="Logout"
+        accessibilityRole="button"
       >
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
@@ -144,7 +166,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
     paddingBottom: 120,
   },
   pageTitle: {
@@ -173,8 +194,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: colors.accent,
-    opacity: 0.8,
+    backgroundColor: colors.text,
+    opacity: 0.5,
   },
   avatarRing: {
     width: 92,
@@ -208,7 +229,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
     borderWidth: 2,
     borderColor: colors.surface,
     alignItems: "center",
@@ -247,11 +268,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accentBright,
+    backgroundColor: colors.text,
   },
   statusText: {
     fontSize: 10,
-    color: colors.accentBright,
+    color: colors.text,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -280,6 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: spacing.md,
+    minHeight: 48,
   },
   menuLeft: {
     flexDirection: "row",
@@ -324,13 +346,15 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.errorDim,
-    backgroundColor: "rgba(255,90,110,0.05)",
+    borderColor: colors.borderLight,
+    backgroundColor: colors.surface,
     alignItems: "center",
+    minHeight: 48,
+    justifyContent: "center",
   },
   logoutText: {
     fontSize: fontSize.sm,
-    color: colors.errorBright,
+    color: colors.textSecondary,
     fontWeight: "600",
     letterSpacing: 0.5,
   },

@@ -7,8 +7,10 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { verifyOTP } from "../lib/api";
 import {
   colors,
@@ -35,12 +37,14 @@ export default function VerifyOTP() {
       return;
     }
 
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     setStatus("verifying otp...");
     try {
       setStatus("downloading statements...");
       const data = await verifyOTP(session_id!, code);
       setStatus("portfolio linked!");
+      if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
         "Portfolio Linked",
         `${data.investor_name}\n${data.total_value?.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}`,
@@ -84,12 +88,13 @@ export default function VerifyOTP() {
             autoFocus
             textAlign="center"
             onSubmitEditing={handleVerify}
+            accessibilityLabel="OTP code"
           />
         </View>
 
         {status ? (
           <View style={styles.statusRow}>
-            <ActivityIndicator color={colors.accent} size="small" />
+            <ActivityIndicator color={colors.text} size="small" />
             <Text style={styles.statusText}>{status}</Text>
           </View>
         ) : null}
@@ -99,6 +104,8 @@ export default function VerifyOTP() {
           onPress={handleVerify}
           disabled={loading}
           activeOpacity={0.85}
+          accessibilityLabel="Verify OTP"
+          accessibilityRole="button"
         >
           {loading ? (
             <ActivityIndicator color={colors.bg} size="small" />
@@ -115,6 +122,8 @@ export default function VerifyOTP() {
           style={styles.link}
           disabled={loading}
           activeOpacity={0.7}
+          accessibilityLabel="Go back"
+          accessibilityRole="link"
         >
           <Text style={styles.linkText}>← Go back</Text>
         </TouchableOpacity>
@@ -138,7 +147,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.lg,
   },
-  iconText: { fontSize: 28, color: colors.accent },
+  iconText: { fontSize: 28, color: colors.text },
   brandPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -155,11 +164,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accentBright,
+    backgroundColor: colors.text,
   },
   brandPillText: {
     fontSize: 10,
-    color: colors.accentBright,
+    color: colors.text,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -177,7 +186,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   panText: {
-    color: colors.accent,
+    color: colors.text,
     fontWeight: "600",
     ...tabular,
   },
@@ -205,7 +214,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   statusText: {
-    color: colors.accent,
+    color: colors.text,
     fontSize: fontSize.sm,
     letterSpacing: 0.5,
     fontWeight: "500",
@@ -215,10 +224,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md + 2,
     marginTop: spacing.xl,
+    minHeight: 48,
   },
   buttonDisabled: { opacity: 0.5 },
   buttonText: {

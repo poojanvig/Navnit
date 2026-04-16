@@ -13,6 +13,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { useAuth } from "../../lib/auth";
 import { colors, spacing, fontSize, borderRadius } from "../../lib/theme";
 
@@ -34,6 +35,7 @@ export default function Signup() {
       Alert.alert("", "Password must be at least 6 characters");
       return;
     }
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
       await signup(name.trim(), email.trim().toLowerCase(), password);
@@ -87,6 +89,7 @@ export default function Signup() {
                 autoCapitalize="words"
                 onFocus={() => setFocused("name")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="Full name"
               />
             </View>
           </View>
@@ -110,6 +113,7 @@ export default function Signup() {
                 autoCorrect={false}
                 onFocus={() => setFocused("email")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="Email address"
               />
             </View>
           </View>
@@ -131,6 +135,7 @@ export default function Signup() {
                 secureTextEntry
                 onFocus={() => setFocused("password")}
                 onBlur={() => setFocused(null)}
+                accessibilityLabel="Password"
               />
             </View>
           </View>
@@ -140,6 +145,8 @@ export default function Signup() {
             onPress={handleSignup}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityLabel="Get started"
+            accessibilityRole="button"
           >
             {loading ? (
               <ActivityIndicator color={colors.bg} size="small" />
@@ -156,6 +163,8 @@ export default function Signup() {
           onPress={() => router.back()}
           style={styles.link}
           activeOpacity={0.7}
+          accessibilityLabel="Go to sign in"
+          accessibilityRole="link"
         >
           <Text style={styles.linkText}>
             Already have an account?{"  "}
@@ -184,20 +193,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.violetDim,
+    backgroundColor: colors.accentDim,
     borderWidth: 1,
-    borderColor: colors.borderViolet,
+    borderColor: colors.borderGlow,
     marginBottom: spacing.lg,
   },
   brandDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.violetBright,
+    backgroundColor: colors.text,
   },
   brandPillText: {
     fontSize: 10,
-    color: colors.violetBright,
+    color: colors.text,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -242,10 +251,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md + 2,
     marginTop: spacing.sm,
+    minHeight: 48,
   },
   buttonDisabled: { opacity: 0.5 },
   buttonText: {
@@ -261,5 +271,5 @@ const styles = StyleSheet.create({
   },
   link: { marginTop: spacing.xxl, alignItems: "center" },
   linkText: { color: colors.textSecondary, fontSize: fontSize.sm },
-  linkBold: { color: colors.accent, fontWeight: "600" },
+  linkBold: { color: colors.text, fontWeight: "600" },
 });
