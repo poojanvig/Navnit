@@ -1,16 +1,8 @@
 import { Platform } from "react-native";
 import { getItem, setItem, deleteItem } from "./storage";
 
-// Set your Render URL here after deploying, or use localhost for dev
-const PROD_URL = "https://navnit.onrender.com";
-
-const BASE =
-  process.env.EXPO_PUBLIC_API_URL ||
-  (Platform.OS === "android"
-    ? "http://10.0.2.2:8000"
-    : __DEV__
-      ? "http://localhost:8000"
-      : PROD_URL);
+// Production API — change to localhost:8000 for local dev
+const BASE = process.env.EXPO_PUBLIC_API_URL || "https://navnit.onrender.com";
 
 async function getToken(): Promise<string | null> {
   try {
@@ -45,10 +37,19 @@ async function request<T = any>(
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await res.json();
+  const text = await res.text();
+
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(
+      res.ok ? "Invalid response from server" : `Server error (${res.status})`
+    );
+  }
 
   if (!res.ok) {
-    throw new Error(data.detail || data.msg || "Request failed");
+    throw new Error(data.detail || data.msg || `Request failed (${res.status})`);
   }
 
   return data;
