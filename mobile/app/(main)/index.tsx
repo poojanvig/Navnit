@@ -533,11 +533,7 @@ export default function Dashboard() {
                               <Text
                                 style={[
                                   styles.typeChipText,
-                                  {
-                                    color: isMF
-                                      ? colors.brandBright
-                                      : colors.brandBright,
-                                  },
+                                  { color: colors.brandBright },
                                 ]}
                               >
                                 {h.type}

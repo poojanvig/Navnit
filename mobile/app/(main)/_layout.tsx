@@ -48,6 +48,7 @@ function TabIcon({
   return (
     <View style={styles.iconOuter}>
       {focused && <View style={styles.activePill} />}
+      {focused && <View style={styles.activeGlow} />}
       {content}
       {focused && <View style={styles.activeIndicator} />}
     </View>
@@ -70,7 +71,7 @@ export default function MainLayout() {
           bottom: bottomOffset,
           left: 20,
           right: 20,
-          height: 68,
+          height: 70,
           backgroundColor: "rgba(12,10,6,0.94)",
           borderRadius: borderRadius.xxl,
           borderTopWidth: 0,
@@ -80,16 +81,16 @@ export default function MainLayout() {
           paddingTop: 0,
           ...Platform.select({
             web: {
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
             } as any,
             default: {},
           }),
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.5,
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.6,
           shadowRadius: 24,
-          elevation: 20,
+          elevation: 24,
         },
         tabBarItemStyle: {
           paddingVertical: 12,
@@ -150,18 +151,32 @@ export default function MainLayout() {
 const styles = StyleSheet.create({
   iconOuter: {
     width: 44,
-    height: 34,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  // Active pill background behind icon
+  // Bright pill behind active icon
   activePill: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.brandDim,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.brandBorder,
+  },
+
+  // Soft gold glow behind active icon
+  activeGlow: {
+    position: "absolute",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(245,184,73,0.08)",
+    shadowColor: colors.brand,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
   },
 
   // Top indicator — small gold dot above the icon when focused
@@ -188,7 +203,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 2.5,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   gridSquareActive: {
     backgroundColor: colors.brandBright,
@@ -204,7 +219,7 @@ const styles = StyleSheet.create({
   bar: {
     width: 4,
     borderRadius: 2,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   barActive: {
     backgroundColor: colors.brandBright,
@@ -219,14 +234,14 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   personBody: {
     width: 14,
     height: 8,
     borderTopLeftRadius: 7,
     borderTopRightRadius: 7,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   personActive: {
     backgroundColor: colors.brandBright,

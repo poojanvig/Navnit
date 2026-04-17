@@ -52,12 +52,12 @@ export const colors = {
   warningDim: "rgba(251,191,36,0.14)",
   gold: "#F5C76E",
 
-  // Categorical palette — greyscale steps for charts
-  cat1: "#FFFFFF",
-  cat2: "#AAAAAA",
-  cat3: "#888888",
-  cat4: "#666666",
-  cat5: "#444444",
+  // Categorical palette — vivid colors for holdings / charts
+  cat1: "#60A5FA", // blue
+  cat2: "#A78BFA", // violet
+  cat3: "#F472B6", // pink
+  cat4: "#FBBF24", // amber
+  cat5: "#34D399", // teal
 };
 
 // Gradient stop arrays — pass directly to LinearGradient `colors` prop
