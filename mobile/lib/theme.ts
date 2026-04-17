@@ -28,22 +28,29 @@ export const colors = {
   accentDim: "rgba(255,255,255,0.08)",
   accentDimStrong: "rgba(255,255,255,0.16)",
 
-  // Secondary accent — mid grey
+  // Brand — premium amber/gold (primary CTA + data accents)
+  brand: "#F5B849",
+  brandBright: "#FFD074",
+  brandDim: "rgba(245,184,73,0.14)",
+  brandDimStrong: "rgba(245,184,73,0.24)",
+  brandBorder: "rgba(245,184,73,0.34)",
+
+  // Secondary accent — mid grey (kept for legacy call-sites)
   violet: "#888888",
   violetBright: "#AAAAAA",
   violetDim: "rgba(255,255,255,0.06)",
   violetDimStrong: "rgba(255,255,255,0.12)",
 
-  // Semantic — gain = bright white, loss = muted grey
-  success: "#FFFFFF",
-  successBright: "#FFFFFF",
-  successDim: "rgba(255,255,255,0.10)",
-  error: "#999999",
-  errorBright: "#777777",
-  errorDim: "rgba(255,255,255,0.06)",
-  warning: "#CCCCCC",
-  warningDim: "rgba(255,255,255,0.08)",
-  gold: "#DDDDDD",
+  // Semantic — muted green/red for OLED dark mode
+  success: "#4ADE80",
+  successBright: "#86EFAC",
+  successDim: "rgba(74,222,128,0.14)",
+  error: "#F87171",
+  errorBright: "#FCA5A5",
+  errorDim: "rgba(248,113,113,0.14)",
+  warning: "#FBBF24",
+  warningDim: "rgba(251,191,36,0.14)",
+  gold: "#F5C76E",
 
   // Categorical palette — greyscale steps for charts
   cat1: "#FFFFFF",
@@ -51,6 +58,24 @@ export const colors = {
   cat3: "#888888",
   cat4: "#666666",
   cat5: "#444444",
+};
+
+// Gradient stop arrays — pass directly to LinearGradient `colors` prop
+export const gradients = {
+  hero: ["#1A140A", "#120C04", "#050302"] as const,
+  heroAccent: ["rgba(245,184,73,0.22)", "rgba(245,184,73,0.00)"] as const,
+  brand: ["#FFD074", "#C8881F"] as const,
+  brandSoft: ["rgba(245,184,73,0.20)", "rgba(245,184,73,0.04)"] as const,
+  gain: ["#4ADE80", "#22C55E"] as const,
+  loss: ["#F87171", "#DC2626"] as const,
+};
+
+// Motion tokens — animation durations + press-scale target
+export const motion = {
+  fast: 150,
+  base: 220,
+  slow: 320,
+  pressScale: 0.97,
 };
 
 export const spacing = {

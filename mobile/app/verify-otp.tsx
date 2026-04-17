@@ -12,6 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { verifyOTP } from "../lib/api";
+import { GradientButton } from "../components/GradientButton";
 import {
   colors,
   spacing,
@@ -37,7 +38,6 @@ export default function VerifyOTP() {
       return;
     }
 
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     setStatus("verifying otp...");
     try {
@@ -99,23 +99,15 @@ export default function VerifyOTP() {
           </View>
         ) : null}
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+        <GradientButton
+          title="Verify"
+          variant="primary"
+          arrow
+          loading={loading}
           onPress={handleVerify}
-          disabled={loading}
-          activeOpacity={0.85}
           accessibilityLabel="Verify OTP"
-          accessibilityRole="button"
-        >
-          {loading ? (
-            <ActivityIndicator color={colors.bg} size="small" />
-          ) : (
-            <>
-              <Text style={styles.buttonText}>Verify</Text>
-              <Text style={styles.buttonArrow}>→</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          style={{ marginTop: spacing.xl }}
+        />
 
         <TouchableOpacity
           onPress={() => router.back()}
@@ -141,13 +133,13 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 1.5,
-    borderColor: colors.borderGlow,
-    backgroundColor: colors.accentDim,
+    borderColor: colors.brandBorder,
+    backgroundColor: colors.brandDim,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.lg,
   },
-  iconText: { fontSize: 28, color: colors.text },
+  iconText: { fontSize: 28, color: colors.brandBright },
   brandPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -155,20 +147,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accentDim,
+    backgroundColor: colors.brandDim,
     borderWidth: 1,
-    borderColor: colors.borderGlow,
+    borderColor: colors.brandBorder,
     marginBottom: spacing.md,
   },
   brandDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.text,
+    backgroundColor: colors.brand,
   },
   brandPillText: {
     fontSize: 10,
-    color: colors.text,
+    color: colors.brandBright,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -218,29 +210,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     letterSpacing: 0.5,
     fontWeight: "500",
-  },
-  button: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.text,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md + 2,
-    marginTop: spacing.xl,
-    minHeight: 48,
-  },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: {
-    color: colors.bg,
-    fontSize: fontSize.md,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  buttonArrow: {
-    color: colors.bg,
-    fontSize: fontSize.md,
-    fontWeight: "700",
   },
   link: { marginTop: spacing.lg, alignItems: "center" },
   linkText: {

@@ -49,6 +49,7 @@ function TabIcon({
     <View style={styles.iconOuter}>
       {focused && <View style={styles.activePill} />}
       {content}
+      {focused && <View style={styles.activeIndicator} />}
     </View>
   );
 }
@@ -70,11 +71,11 @@ export default function MainLayout() {
           left: 20,
           right: 20,
           height: 68,
-          backgroundColor: "rgba(10,10,10,0.94)",
+          backgroundColor: "rgba(12,10,6,0.94)",
           borderRadius: borderRadius.xxl,
           borderTopWidth: 0,
           borderWidth: 1,
-          borderColor: "rgba(255,255,255,0.08)",
+          borderColor: colors.brandBorder,
           paddingBottom: 0,
           paddingTop: 0,
           ...Platform.select({
@@ -86,20 +87,20 @@ export default function MainLayout() {
           }),
           shadowColor: "#000",
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 20,
+          shadowOpacity: 0.5,
+          shadowRadius: 24,
           elevation: 20,
         },
         tabBarItemStyle: {
           paddingVertical: 12,
           minHeight: 48,
         },
-        tabBarActiveTintColor: colors.text,
+        tabBarActiveTintColor: colors.brandBright,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarLabelStyle: {
           fontSize: 10,
           letterSpacing: 1.5,
-          fontWeight: "500",
+          fontWeight: "600",
           textTransform: "uppercase" as any,
           marginTop: 2,
         },
@@ -148,8 +149,8 @@ export default function MainLayout() {
 
 const styles = StyleSheet.create({
   iconOuter: {
-    width: 40,
-    height: 32,
+    width: 44,
+    height: 34,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -157,8 +158,20 @@ const styles = StyleSheet.create({
   // Active pill background behind icon
   activePill: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.10)",
+    backgroundColor: colors.brandDim,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.brandBorder,
+  },
+
+  // Top indicator — small gold dot above the icon when focused
+  activeIndicator: {
+    position: "absolute",
+    top: -4,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.brand,
   },
 
   // Dashboard: 2x2 grid
@@ -178,7 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   gridSquareActive: {
-    backgroundColor: colors.text,
+    backgroundColor: colors.brandBright,
   },
 
   // Holdings: bar chart
@@ -194,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   barActive: {
-    backgroundColor: colors.text,
+    backgroundColor: colors.brandBright,
   },
 
   // Profile: person
@@ -216,6 +229,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textTertiary,
   },
   personActive: {
-    backgroundColor: colors.text,
+    backgroundColor: colors.brandBright,
   },
 });

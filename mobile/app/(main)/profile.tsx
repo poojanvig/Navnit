@@ -83,8 +83,8 @@ export default function Profile() {
           accessibilityRole="button"
         >
           <View style={styles.menuLeft}>
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentDim }]}>
-              <Text style={[styles.menuIconText, { color: colors.text }]}>+</Text>
+            <View style={[styles.menuIcon, { backgroundColor: colors.brandDim }]}>
+              <Text style={[styles.menuIconText, { color: colors.brandBright }]}>+</Text>
             </View>
             <View>
               <Text style={styles.menuText}>Link New Portfolio</Text>
@@ -103,8 +103,8 @@ export default function Profile() {
           accessibilityRole="button"
         >
           <View style={styles.menuLeft}>
-            <View style={[styles.menuIcon, { backgroundColor: colors.violetDim }]}>
-              <Text style={[styles.menuIconText, { color: colors.violetBright }]}>◈</Text>
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentDim }]}>
+              <Text style={[styles.menuIconText, { color: colors.text }]}>◈</Text>
             </View>
             <View>
               <Text style={styles.menuText}>Security</Text>
@@ -194,18 +194,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: colors.text,
-    opacity: 0.5,
+    backgroundColor: colors.brand,
+    opacity: 0.6,
   },
   avatarRing: {
     width: 92,
     height: 92,
     borderRadius: 46,
     borderWidth: 1.5,
-    borderColor: colors.borderGlow,
+    borderColor: colors.brandBorder,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.accentDim,
+    backgroundColor: colors.brandDim,
   },
   avatar: {
     width: 78,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colors.text,
+    backgroundColor: colors.brand,
     borderWidth: 2,
     borderColor: colors.surface,
     alignItems: "center",
@@ -260,19 +260,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accentDim,
+    backgroundColor: colors.brandDim,
     borderWidth: 1,
-    borderColor: colors.borderGlow,
+    borderColor: colors.brandBorder,
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.text,
+    backgroundColor: colors.brand,
   },
   statusText: {
     fontSize: 10,
-    color: colors.text,
+    color: colors.brandBright,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
