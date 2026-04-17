@@ -34,23 +34,23 @@ export const colors = {
   violetDim: "rgba(255,255,255,0.06)",
   violetDimStrong: "rgba(255,255,255,0.12)",
 
-  // Semantic — gain = bright white, loss = muted grey
-  success: "#FFFFFF",
-  successBright: "#FFFFFF",
-  successDim: "rgba(255,255,255,0.10)",
-  error: "#999999",
-  errorBright: "#777777",
-  errorDim: "rgba(255,255,255,0.06)",
+  // Semantic — green for profit, red for loss
+  success: "#22C55E",
+  successBright: "#4ADE80",
+  successDim: "rgba(34,197,94,0.12)",
+  error: "#EF4444",
+  errorBright: "#F87171",
+  errorDim: "rgba(239,68,68,0.12)",
   warning: "#CCCCCC",
   warningDim: "rgba(255,255,255,0.08)",
   gold: "#DDDDDD",
 
-  // Categorical palette — greyscale steps for charts
-  cat1: "#FFFFFF",
-  cat2: "#AAAAAA",
-  cat3: "#888888",
-  cat4: "#666666",
-  cat5: "#444444",
+  // Categorical palette — vivid colors for holdings / charts
+  cat1: "#60A5FA", // blue
+  cat2: "#A78BFA", // violet
+  cat3: "#F472B6", // pink
+  cat4: "#FBBF24", // amber
+  cat5: "#34D399", // teal
 };
 
 export const spacing = {

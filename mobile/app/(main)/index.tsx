@@ -434,8 +434,9 @@ export default function Dashboard() {
               {allHoldings.slice(0, 5).map((h, i) => {
                 const pct =
                   totalPortfolio > 0 ? (h.value / totalPortfolio) * 100 : 0;
-                const isMF = h.type === "MF";
-                const accentColor = isMF ? colors.text : colors.violet;
+                const isUp = h.gain >= 0;
+                const accentColor = isUp ? colors.successBright : colors.errorBright;
+                const chipBg = isUp ? colors.successDim : colors.errorDim;
                 return (
                   <View key={i} style={styles.holdingCard}>
                     <View
@@ -455,16 +456,14 @@ export default function Dashboard() {
                               style={[
                                 styles.typeChip,
                                 {
-                                  backgroundColor: isMF
-                                    ? colors.accentDim
-                                    : colors.violetDim,
+                                  backgroundColor: chipBg,
                                 },
                               ]}
                             >
                               <Text
                                 style={[
                                   styles.typeChipText,
-                                  { color: isMF ? colors.text : colors.violetBright },
+                                  { color: accentColor },
                                 ]}
                               >
                                 {h.type}

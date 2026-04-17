@@ -48,6 +48,7 @@ function TabIcon({
   return (
     <View style={styles.iconOuter}>
       {focused && <View style={styles.activePill} />}
+      {focused && <View style={styles.activeGlow} />}
       {content}
     </View>
   );
@@ -69,37 +70,39 @@ export default function MainLayout() {
           bottom: bottomOffset,
           left: 20,
           right: 20,
-          height: 68,
-          backgroundColor: "rgba(10,10,10,0.94)",
+          height: 70,
+          backgroundColor: "#161616",
           borderRadius: borderRadius.xxl,
           borderTopWidth: 0,
-          borderWidth: 1,
-          borderColor: "rgba(255,255,255,0.08)",
+          borderWidth: 1.5,
+          borderColor: "rgba(255,255,255,0.15)",
+          // Bright top highlight to separate from dark content
+          borderTopColor: "rgba(255,255,255,0.20)",
           paddingBottom: 0,
           paddingTop: 0,
           ...Platform.select({
             web: {
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
             } as any,
             default: {},
           }),
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 20,
-          elevation: 20,
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.6,
+          shadowRadius: 24,
+          elevation: 24,
         },
         tabBarItemStyle: {
           paddingVertical: 12,
           minHeight: 48,
         },
-        tabBarActiveTintColor: colors.text,
-        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarActiveTintColor: "#FFFFFF",
+        tabBarInactiveTintColor: "rgba(255,255,255,0.35)",
         tabBarLabelStyle: {
           fontSize: 10,
           letterSpacing: 1.5,
-          fontWeight: "500",
+          fontWeight: "600",
           textTransform: "uppercase" as any,
           marginTop: 2,
         },
@@ -148,17 +151,33 @@ export default function MainLayout() {
 
 const styles = StyleSheet.create({
   iconOuter: {
-    width: 40,
-    height: 32,
+    width: 44,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  // Active pill background behind icon
+  // Bright pill behind active icon
   activePill: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.10)",
-    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+  },
+
+  // Soft white glow behind active icon
+  activeGlow: {
+    position: "absolute",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
   },
 
   // Dashboard: 2x2 grid
@@ -175,10 +194,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 2.5,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   gridSquareActive: {
-    backgroundColor: colors.text,
+    backgroundColor: "#FFFFFF",
   },
 
   // Holdings: bar chart
@@ -191,10 +210,10 @@ const styles = StyleSheet.create({
   bar: {
     width: 4,
     borderRadius: 2,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   barActive: {
-    backgroundColor: colors.text,
+    backgroundColor: "#FFFFFF",
   },
 
   // Profile: person
@@ -206,16 +225,16 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   personBody: {
     width: 14,
     height: 8,
     borderTopLeftRadius: 7,
     borderTopRightRadius: 7,
-    backgroundColor: colors.textTertiary,
+    backgroundColor: "rgba(255,255,255,0.30)",
   },
   personActive: {
-    backgroundColor: colors.text,
+    backgroundColor: "#FFFFFF",
   },
 });
