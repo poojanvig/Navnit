@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,24 @@ import {
   RefreshControl,
   Platform,
   Image,
+  Animated,
+  Easing,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { getPortfolios, getPortfolio } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { fmtINR, fmtINRFull } from "../../lib/format";
 import { DashboardSkeleton } from "../../components/Skeleton";
+import { StatPill } from "../../components/StatPill";
+import { DonutChart } from "../../components/DonutChart";
+import { GradientButton } from "../../components/GradientButton";
+import {
+  HoldingDetailSheet,
+  HoldingDetail,
+} from "../../components/HoldingDetailSheet";
 import {
   colors,
   spacing,
@@ -23,7 +33,16 @@ import {
   borderRadius,
   tabular,
   cardShadow,
+  gradients,
+  motion,
 } from "../../lib/theme";
+
+// Allocation chart colors — scoped to this section so each segment reads distinctly.
+// Gold + copper is a classic warm-metal pairing; both stay in the premium theme family.
+const ALLOC_MF = "#F5B849";
+const ALLOC_MF_DIM = "rgba(245,184,73,0.14)";
+const ALLOC_DEMAT = "#E08E5A";
+const ALLOC_DEMAT_DIM = "rgba(224,142,90,0.14)";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -33,6 +52,45 @@ export default function Dashboard() {
   const [activeData, setActiveData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [detailHolding, setDetailHolding] = useState<HoldingDetail | null>(null);
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(16)).current;
+  const countAnim = useRef(new Animated.Value(0)).current;
+  const [countValue, setCountValue] = useState(0);
+  const hasAnimatedRef = useRef(false);
+
+  useEffect(() => {
+    const sub = countAnim.addListener(({ value }) => setCountValue(value));
+    return () => countAnim.removeListener(sub);
+  }, [countAnim]);
+
+  useEffect(() => {
+    if (!loading && activeData && !hasAnimatedRef.current) {
+      hasAnimatedRef.current = true;
+      const target = activeData?.summary?.total_value || 0;
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: motion.slow,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: motion.slow,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(countAnim, {
+          toValue: target,
+          duration: 900,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  }, [loading, activeData, fadeAnim, slideAnim, countAnim]);
 
   const load = async () => {
     try {
@@ -113,6 +171,10 @@ export default function Dashboard() {
       gain: s.gain?.absolute || 0,
       gainPct: s.gain?.percentage || 0,
       type: "MF",
+      units: s.units,
+      nav: s.nav,
+      cost: s.cost,
+      transactions: s.transactions,
     });
   });
   demat.forEach((acct: any) => {
@@ -132,11 +194,29 @@ export default function Dashboard() {
           gain: 0,
           gainPct: 0,
           type: "EQ",
+          units: sec.units,
+          transactions: sec.transactions,
         });
       }
     });
   });
   allHoldings.sort((a, b) => b.value - a.value);
+
+  const openHoldingDetail = (h: any) => {
+    if (Platform.OS !== "web") Haptics.selectionAsync();
+    setDetailHolding({
+      name: h.name,
+      sub: h.sub,
+      type: h.type,
+      value: h.value,
+      units: h.units,
+      nav: h.nav,
+      cost: h.cost,
+      gainAbs: h.type === "MF" ? h.gain : undefined,
+      gainPct: h.type === "MF" ? h.gainPct : undefined,
+      transactions: h.transactions,
+    });
+  };
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString("en-IN", {
@@ -167,10 +247,6 @@ export default function Dashboard() {
           style={styles.brandLogo}
           resizeMode="contain"
         />
-        <View style={styles.liveChip}>
-          <View style={styles.livePulse} />
-          <Text style={styles.liveText}>LIVE</Text>
-        </View>
       </View>
 
       {!activeData ? (
@@ -195,23 +271,24 @@ export default function Dashboard() {
             <Text style={styles.emptySubtitle}>
               Connect your demat account to see all your investments in one place
             </Text>
-            <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={() => {
-                if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push("/add-portfolio");
-              }}
-              activeOpacity={0.85}
+            <GradientButton
+              title="Link Portfolio"
+              variant="primary"
+              arrow
+              hapticStyle="medium"
+              onPress={() => router.push("/add-portfolio")}
               accessibilityLabel="Link your portfolio"
-              accessibilityRole="button"
-            >
-              <Text style={styles.primaryBtnText}>Link Portfolio</Text>
-              <Text style={styles.primaryBtnArrow}>→</Text>
-            </TouchableOpacity>
+              style={{ marginTop: spacing.xl, alignSelf: "stretch" }}
+            />
           </View>
         </View>
       ) : (
-        <>
+        <Animated.View
+          style={{
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          }}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.greeting}>
@@ -227,35 +304,31 @@ export default function Dashboard() {
           </View>
 
           {/* Hero Card — Total Portfolio */}
-          <View style={styles.heroCard}>
-            <View style={styles.heroAccentStrip} />
+          <LinearGradient
+            colors={gradients.hero as unknown as [string, string, ...string[]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroCard}
+          >
+            <LinearGradient
+              colors={
+                gradients.heroAccent as unknown as [string, string, ...string[]]
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroGlow}
+              pointerEvents="none"
+            />
             <View style={styles.heroInnerHighlight} />
             <View style={styles.heroTop}>
               <Text style={styles.heroLabel}>Total Portfolio Value</Text>
               <Text style={styles.heroTimestamp}>AS OF {timeStr}</Text>
             </View>
-            <Text style={styles.heroAmount}>{fmtINRFull(totalPortfolio)}</Text>
+            <Text style={styles.heroAmount}>{fmtINRFull(countValue)}</Text>
 
             {totalCost > 0 && (
               <View style={styles.heroPillRow}>
-                <View
-                  style={[
-                    styles.pill,
-                    {
-                      backgroundColor:
-                        totalGain >= 0 ? colors.successDim : colors.errorDim,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.pillText,
-                      { color: totalGain >= 0 ? colors.successBright : colors.errorBright },
-                    ]}
-                  >
-                    {totalGain >= 0 ? "▲" : "▼"} {Math.abs(gainPct).toFixed(2)}%
-                  </Text>
-                </View>
+                <StatPill pct={gainPct} size="md" />
                 <Text
                   style={[
                     styles.heroGainAbs,
@@ -285,35 +358,37 @@ export default function Dashboard() {
                 <Text style={styles.heroMetaValue}>{investor?.pan}</Text>
               </View>
             </View>
-          </View>
+          </LinearGradient>
 
-          {/* Allocation — split bar */}
+          {/* Allocation — donut + legend */}
           <View style={styles.allocSection}>
             <View style={styles.allocHeader}>
               <Text style={styles.sectionLabel}>Asset Allocation</Text>
             </View>
-            <View style={styles.allocBar}>
-              {mfPct > 0 && (
-                <View
-                  style={[
-                    styles.allocBarSegment,
-                    { flex: mfPct, backgroundColor: colors.text },
-                  ]}
-                />
-              )}
-              {dematPct > 0 && (
-                <View
-                  style={[
-                    styles.allocBarSegment,
-                    { flex: dematPct, backgroundColor: colors.violet },
-                  ]}
-                />
-              )}
+            <View style={styles.donutWrap}>
+              <DonutChart
+                size={192}
+                strokeWidth={18}
+                segments={[
+                  {
+                    label: "Mutual Funds",
+                    value: mfValue,
+                    color: ALLOC_MF,
+                  },
+                  {
+                    label: "Demat",
+                    value: dematValue,
+                    color: ALLOC_DEMAT,
+                  },
+                ]}
+                centerLabel="TOTAL"
+                centerValue={fmtINR(totalPortfolio)}
+              />
             </View>
             <View style={styles.row}>
               <View style={styles.allocCard}>
                 <View style={styles.allocCardHeader}>
-                  <View style={[styles.dot, { backgroundColor: colors.text }]} />
+                  <View style={[styles.dot, { backgroundColor: ALLOC_MF }]} />
                   <Text style={styles.allocLabel}>Mutual Funds</Text>
                 </View>
                 <Text style={styles.allocValue}>{fmtINR(mfValue)}</Text>
@@ -321,14 +396,23 @@ export default function Dashboard() {
                   <Text style={styles.allocSub}>
                     {accounts.mutual_funds?.count || 0} folio
                   </Text>
-                  <View style={styles.allocPctPill}>
-                    <Text style={styles.allocPctText}>{mfPct.toFixed(1)}%</Text>
+                  <View
+                    style={[
+                      styles.allocPctPill,
+                      { backgroundColor: ALLOC_MF_DIM },
+                    ]}
+                  >
+                    <Text style={[styles.allocPctText, { color: ALLOC_MF }]}>
+                      {mfPct.toFixed(1)}%
+                    </Text>
                   </View>
                 </View>
               </View>
               <View style={styles.allocCard}>
                 <View style={styles.allocCardHeader}>
-                  <View style={[styles.dot, { backgroundColor: colors.violet }]} />
+                  <View
+                    style={[styles.dot, { backgroundColor: ALLOC_DEMAT }]}
+                  />
                   <Text style={styles.allocLabel}>Demat</Text>
                 </View>
                 <Text style={styles.allocValue}>{fmtINR(dematValue)}</Text>
@@ -339,11 +423,11 @@ export default function Dashboard() {
                   <View
                     style={[
                       styles.allocPctPill,
-                      { backgroundColor: colors.violetDim },
+                      { backgroundColor: ALLOC_DEMAT_DIM },
                     ]}
                   >
                     <Text
-                      style={[styles.allocPctText, { color: colors.violetBright }]}
+                      style={[styles.allocPctText, { color: ALLOC_DEMAT }]}
                     >
                       {dematPct.toFixed(1)}%
                     </Text>
@@ -358,27 +442,7 @@ export default function Dashboard() {
             <View style={styles.plCard}>
               <View style={styles.plCardHeader}>
                 <Text style={styles.sectionLabel}>Mutual Fund P&L</Text>
-                <View
-                  style={[
-                    styles.pill,
-                    {
-                      backgroundColor:
-                        totalGain >= 0 ? colors.successDim : colors.errorDim,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.pillText,
-                      {
-                        color:
-                          totalGain >= 0 ? colors.successBright : colors.errorBright,
-                      },
-                    ]}
-                  >
-                    {totalGain >= 0 ? "▲" : "▼"} {Math.abs(gainPct).toFixed(2)}%
-                  </Text>
-                </View>
+                <StatPill pct={gainPct} size="md" />
               </View>
               <View style={styles.plGrid}>
                 <View style={styles.plItem}>
@@ -409,7 +473,7 @@ export default function Dashboard() {
                     {
                       width: `${Math.min(100, Math.max(5, (totalVal / totalCost) * 100))}%`,
                       backgroundColor:
-                        totalGain >= 0 ? colors.text : colors.errorBright,
+                        totalGain >= 0 ? colors.success : colors.error,
                     },
                   ]}
                 />
@@ -434,11 +498,17 @@ export default function Dashboard() {
               {allHoldings.slice(0, 5).map((h, i) => {
                 const pct =
                   totalPortfolio > 0 ? (h.value / totalPortfolio) * 100 : 0;
-                const isUp = h.gain >= 0;
-                const accentColor = isUp ? colors.successBright : colors.errorBright;
-                const chipBg = isUp ? colors.successDim : colors.errorDim;
+                const isMF = h.type === "MF";
+                const accentColor = isMF ? colors.brand : colors.brandBright;
                 return (
-                  <View key={i} style={styles.holdingCard}>
+                  <TouchableOpacity
+                    key={i}
+                    style={styles.holdingCard}
+                    activeOpacity={0.7}
+                    onPress={() => openHoldingDetail(h)}
+                    accessibilityLabel={`View ${h.name} details`}
+                    accessibilityRole="button"
+                  >
                     <View
                       style={[
                         styles.holdingAccent,
@@ -456,14 +526,14 @@ export default function Dashboard() {
                               style={[
                                 styles.typeChip,
                                 {
-                                  backgroundColor: chipBg,
+                                  backgroundColor: colors.brandDim,
                                 },
                               ]}
                             >
                               <Text
                                 style={[
                                   styles.typeChipText,
-                                  { color: accentColor },
+                                  { color: colors.brandBright },
                                 ]}
                               >
                                 {h.type}
@@ -509,28 +579,30 @@ export default function Dashboard() {
                         <Text style={styles.holdingPct}>{pct.toFixed(1)}%</Text>
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
           )}
 
           {/* Fetch button */}
-          <TouchableOpacity
-            style={styles.fetchBtn}
-            onPress={() => {
-              if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push("/add-portfolio");
-            }}
-            activeOpacity={0.8}
+          <GradientButton
+            title="Fetch Latest Data"
+            variant="secondary"
+            icon="↻"
+            arrow={false}
+            hapticStyle="light"
+            onPress={() => router.push("/add-portfolio")}
             accessibilityLabel="Fetch latest portfolio data"
-            accessibilityRole="button"
-          >
-            <Text style={styles.fetchBtnIcon}>↻</Text>
-            <Text style={styles.fetchBtnText}>Fetch Latest Data</Text>
-          </TouchableOpacity>
-        </>
+            style={{ marginTop: spacing.xl }}
+          />
+        </Animated.View>
       )}
+      <HoldingDetailSheet
+        visible={!!detailHolding}
+        onClose={() => setDetailHolding(null)}
+        holding={detailHolding}
+      />
     </ScrollView>
   );
 }
@@ -553,35 +625,12 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginBottom: spacing.xl,
   },
   brandLogo: {
     width: 180,
     height: 54,
-  },
-  liveChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.accentDim,
-    borderWidth: 1,
-    borderColor: colors.borderGlow,
-  },
-  livePulse: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.text,
-  },
-  liveText: {
-    fontSize: 10,
-    color: colors.text,
-    fontWeight: "700",
-    letterSpacing: 1.2,
   },
 
   // Header
@@ -643,46 +692,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  primaryBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.text,
-    borderRadius: borderRadius.full,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.xl,
-    marginTop: spacing.xl,
-  },
-  primaryBtnText: {
-    color: colors.bg,
-    fontSize: fontSize.sm,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  primaryBtnArrow: {
-    color: colors.bg,
-    fontSize: fontSize.md,
-    fontWeight: "700",
-  },
-
   // Hero Card
   heroCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.brandBorder,
     overflow: "hidden",
     ...cardShadow,
   },
-  heroAccentStrip: {
+  heroGlow: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 2,
-    backgroundColor: colors.text,
-    opacity: 0.6,
+    bottom: 0,
   },
   heroInnerHighlight: {
     position: "absolute",
@@ -760,19 +784,6 @@ const styles = StyleSheet.create({
     ...tabular,
   },
 
-  // Pills
-  pill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: borderRadius.full,
-  },
-  pillText: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-    ...tabular,
-  },
-
   // Section labels
   sectionLabel: {
     fontSize: 11,
@@ -787,18 +798,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   allocHeader: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
-  allocBar: {
-    height: 8,
-    flexDirection: "row",
-    borderRadius: borderRadius.full,
-    overflow: "hidden",
-    backgroundColor: colors.surfaceElevated,
-    marginBottom: spacing.sm,
-  },
-  allocBarSegment: {
-    height: "100%",
+  donutWrap: {
+    alignItems: "center",
+    marginBottom: spacing.lg,
   },
   row: {
     flexDirection: "row",
@@ -1018,27 +1022,4 @@ const styles = StyleSheet.create({
     ...tabular,
   },
 
-  // Fetch button
-  fetchBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.full,
-    paddingVertical: 14,
-    marginTop: spacing.xl,
-  },
-  fetchBtnIcon: {
-    fontSize: fontSize.md,
-    color: colors.text,
-  },
-  fetchBtnText: {
-    color: colors.text,
-    fontSize: fontSize.sm,
-    letterSpacing: 0.5,
-    fontWeight: "500",
-  },
 });

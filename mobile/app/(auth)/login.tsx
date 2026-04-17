@@ -8,12 +8,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
 import { useAuth } from "../../lib/auth";
+import { GradientButton } from "../../components/GradientButton";
 import { colors, spacing, fontSize, borderRadius } from "../../lib/theme";
 
 export default function Login() {
@@ -29,7 +28,6 @@ export default function Login() {
       Alert.alert("", "Please fill in all fields");
       return;
     }
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
       await login(email.trim().toLowerCase(), password);
@@ -109,23 +107,15 @@ export default function Login() {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+          <GradientButton
+            title="Continue"
+            variant="primary"
+            arrow
+            loading={loading}
             onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.85}
             accessibilityLabel="Continue to sign in"
-            accessibilityRole="button"
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.bg} size="small" />
-            ) : (
-              <>
-                <Text style={styles.buttonText}>Continue</Text>
-                <Text style={styles.buttonArrow}>→</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            style={{ marginTop: spacing.sm }}
+          />
         </View>
 
         <TouchableOpacity
@@ -171,20 +161,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accentDim,
+    backgroundColor: colors.brandDim,
     borderWidth: 1,
-    borderColor: colors.borderGlow,
+    borderColor: colors.brandBorder,
     marginBottom: spacing.lg,
   },
   brandDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.text,
+    backgroundColor: colors.brand,
   },
   brandPillText: {
     fontSize: 10,
-    color: colors.text,
+    color: colors.brandBright,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -220,7 +210,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   inputWrapFocused: {
-    borderColor: colors.borderGlow,
+    borderColor: colors.brandBorder,
     backgroundColor: colors.surfaceElevated,
   },
   input: {
@@ -228,31 +218,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.text,
     letterSpacing: 0.3,
-  },
-  button: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.text,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md + 2,
-    marginTop: spacing.sm,
-    minHeight: 48,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: colors.bg,
-    fontSize: fontSize.md,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  buttonArrow: {
-    color: colors.bg,
-    fontSize: fontSize.md,
-    fontWeight: "700",
   },
   link: {
     marginTop: spacing.xxl,

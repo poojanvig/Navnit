@@ -8,12 +8,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator,
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
 import { requestOTP } from "../lib/api";
+import { GradientButton } from "../components/GradientButton";
 import { colors, spacing, fontSize, borderRadius } from "../lib/theme";
 
 export default function AddPortfolio() {
@@ -37,7 +36,6 @@ export default function AddPortfolio() {
       Alert.alert("", "BO ID must be 16 digits");
       return;
     }
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
       const data = await requestOTP(pan.toUpperCase(), boId, dob);
@@ -159,28 +157,16 @@ export default function AddPortfolio() {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+          <GradientButton
+            title="Request OTP"
+            variant="primary"
+            arrow
+            loading={loading}
+            loadingText="Solving captcha..."
             onPress={handleSubmit}
-            disabled={loading}
-            activeOpacity={0.85}
             accessibilityLabel="Request OTP"
-            accessibilityRole="button"
-          >
-            {loading ? (
-              <View style={styles.loadingRow}>
-                <ActivityIndicator color={colors.bg} size="small" />
-                <Text style={[styles.buttonText, { marginLeft: 8 }]}>
-                  Solving captcha...
-                </Text>
-              </View>
-            ) : (
-              <>
-                <Text style={styles.buttonText}>Request OTP</Text>
-                <Text style={styles.buttonArrow}>→</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            style={{ marginTop: spacing.sm }}
+          />
         </View>
 
         {/* Info card */}
@@ -252,20 +238,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accentDim,
+    backgroundColor: colors.brandDim,
     borderWidth: 1,
-    borderColor: colors.borderGlow,
+    borderColor: colors.brandBorder,
     marginBottom: spacing.md,
   },
   brandDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.text,
+    backgroundColor: colors.brand,
   },
   brandPillText: {
     fontSize: 10,
-    color: colors.text,
+    color: colors.brandBright,
     fontWeight: "700",
     letterSpacing: 1.2,
   },
@@ -277,7 +263,7 @@ const styles = StyleSheet.create({
     lineHeight: 42,
   },
   titleAccent: {
-    color: colors.textSecondary,
+    color: colors.brandBright,
   },
   subtitle: {
     fontSize: fontSize.sm,
@@ -302,7 +288,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   inputWrapFocused: {
-    borderColor: colors.borderGlow,
+    borderColor: colors.brandBorder,
     backgroundColor: colors.surfaceElevated,
   },
   input: {
@@ -317,31 +303,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
   },
-  button: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.text,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md + 2,
-    marginTop: spacing.sm,
-    minHeight: 48,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: colors.bg,
-    fontSize: fontSize.md,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  buttonArrow: {
-    color: colors.bg,
-    fontSize: fontSize.md,
-    fontWeight: "700",
-  },
-  loadingRow: { flexDirection: "row", alignItems: "center" },
-
   // Info card
   infoCard: {
     marginTop: spacing.xxl,
@@ -359,8 +320,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: colors.violet,
-    opacity: 0.5,
+    backgroundColor: colors.brand,
+    opacity: 0.6,
   },
   infoHeader: {
     marginBottom: 4,
@@ -380,15 +341,15 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.violetDim,
+    backgroundColor: colors.brandDim,
     borderWidth: 1,
-    borderColor: colors.borderViolet,
+    borderColor: colors.brandBorder,
     alignItems: "center",
     justifyContent: "center",
   },
   stepNum: {
     fontSize: fontSize.xs,
-    color: colors.violetBright,
+    color: colors.brandBright,
     fontWeight: "700",
   },
   stepTitle: {

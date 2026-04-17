@@ -68,10 +68,15 @@ export function DashboardSkeleton() {
         </View>
       </View>
 
-      {/* Allocation */}
+      {/* Allocation — donut */}
       <SkeletonBlock width={120} height={12} style={{ marginTop: 24 }} />
-      <SkeletonBlock height={8} radius={4} style={{ marginTop: 8 }} />
-      <View style={[styles.row, { marginTop: 8, gap: 8 }]}>
+      <View style={styles.donutWrap}>
+        <View style={styles.donutOuter}>
+          <SkeletonBlock width={192} height={192} radius={96} />
+          <View style={styles.donutInner} />
+        </View>
+      </View>
+      <View style={[styles.row, { marginTop: 16, gap: 8 }]}>
         <View style={styles.allocCard}>
           <SkeletonBlock width={60} height={10} />
           <SkeletonBlock width="80%" height={20} style={{ marginTop: 8 }} />
@@ -161,5 +166,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  donutWrap: {
+    alignItems: "center",
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  donutOuter: {
+    width: 192,
+    height: 192,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  donutInner: {
+    position: "absolute",
+    width: 156,
+    height: 156,
+    borderRadius: 78,
+    backgroundColor: colors.bg,
   },
 });
