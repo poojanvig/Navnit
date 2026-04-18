@@ -39,6 +39,7 @@ class OTPRequest(BaseModel):
 class OTPVerify(BaseModel):
     session_id: str
     otp: str
+    pan: str
     num_periods: int = 6
 
 

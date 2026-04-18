@@ -97,11 +97,12 @@ export async function requestOTP(pan: string, bo_id: string, dob: string) {
 export async function verifyOTP(
   session_id: string,
   otp: string,
+  pan: string,
   num_periods: number = 6
 ) {
   return request("/api/portfolio/verify-otp", {
     method: "POST",
-    body: { session_id, otp, num_periods },
+    body: { session_id, otp, pan, num_periods },
   });
 }
 

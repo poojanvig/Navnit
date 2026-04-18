@@ -42,7 +42,7 @@ export default function VerifyOTP() {
     setStatus("verifying otp...");
     try {
       setStatus("downloading statements...");
-      const data = await verifyOTP(session_id!, code);
+      const data = await verifyOTP(session_id!, code, pan!);
       setStatus("portfolio linked!");
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
