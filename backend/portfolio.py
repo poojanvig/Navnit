@@ -105,9 +105,12 @@ def verify_otp(
     if not files:
         raise HTTPException(400, "No CAS files returned")
 
-    # Step 2: Download and parse each PDF
+    # Step 2: Download and parse each PDF. CDSL CAS PDFs are password-protected
+    # with the investor's PAN (uppercase).
+    pdf_password = req.pan.upper()
     all_parsed = []
     pan = ""
+    parse_errors = []
     for f in files:
         url = f.get("url", "")
         name = f.get("filename", "file.pdf")
@@ -116,23 +119,31 @@ def verify_otp(
         try:
             pdf_resp = httpx.get(url, timeout=60)
             if pdf_resp.status_code != 200:
+                parse_errors.append(f"{name}: download HTTP {pdf_resp.status_code}")
                 continue
             parse_resp = httpx.post(
                 f"{API}/v4/cdsl/parse",
                 headers=HEADERS,
                 files={"file": (name, pdf_resp.content, "application/pdf")},
-                data={"password": ""},
+                data={"password": pdf_password},
                 timeout=120,
             )
             parsed = parse_resp.json()
             if "investor" in parsed:
                 all_parsed.append(parsed)
                 pan = parsed.get("investor", {}).get("pan", pan)
-        except Exception:
-            continue
+            else:
+                parse_errors.append(
+                    f"{name}: {parsed.get('msg') or parsed.get('detail') or f'HTTP {parse_resp.status_code}'}"
+                )
+        except Exception as exc:
+            parse_errors.append(f"{name}: {exc}")
 
     if not all_parsed:
-        raise HTTPException(500, "Failed to parse any CAS files")
+        detail = "Failed to parse any CAS files"
+        if parse_errors:
+            detail += f" ({'; '.join(parse_errors)})"
+        raise HTTPException(500, detail)
 
     # Step 3: Merge all parsed data
     merged = all_parsed[0]
