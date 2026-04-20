@@ -269,7 +269,7 @@ export default function Dashboard() {
             </View>
             <Text style={styles.emptyTitle}>No portfolio linked</Text>
             <Text style={styles.emptySubtitle}>
-              Connect your demat account to see all your investments in one place
+              Connect your investment accounts to see all your holdings in one place
             </Text>
             <GradientButton
               title="Link Portfolio"
@@ -376,7 +376,7 @@ export default function Dashboard() {
                     color: ALLOC_MF,
                   },
                   {
-                    label: "Demat",
+                    label: "Stock Investments",
                     value: dematValue,
                     color: ALLOC_DEMAT,
                   },
@@ -394,7 +394,8 @@ export default function Dashboard() {
                 <Text style={styles.allocValue}>{fmtINR(mfValue)}</Text>
                 <View style={styles.allocMetaRow}>
                   <Text style={styles.allocSub}>
-                    {accounts.mutual_funds?.count || 0} folio
+                    {accounts.mutual_funds?.count || 0}{" "}
+                    {(accounts.mutual_funds?.count || 0) === 1 ? "folio" : "folios"}
                   </Text>
                   <View
                     style={[
@@ -413,12 +414,13 @@ export default function Dashboard() {
                   <View
                     style={[styles.dot, { backgroundColor: ALLOC_DEMAT }]}
                   />
-                  <Text style={styles.allocLabel}>Demat</Text>
+                  <Text style={styles.allocLabel}>Stock Investments</Text>
                 </View>
                 <Text style={styles.allocValue}>{fmtINR(dematValue)}</Text>
                 <View style={styles.allocMetaRow}>
                   <Text style={styles.allocSub}>
-                    {accounts.demat?.count || 0} account
+                    {accounts.demat?.count || 0}{" "}
+                    {(accounts.demat?.count || 0) === 1 ? "account" : "accounts"}
                   </Text>
                   <View
                     style={[

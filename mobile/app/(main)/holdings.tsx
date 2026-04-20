@@ -39,6 +39,9 @@ export default function Holdings() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<"mf" | "demat">("mf");
+  const [stockView, setStockView] = useState<"securities" | "accounts">(
+    "securities"
+  );
   const [detailHolding, setDetailHolding] = useState<HoldingDetail | null>(null);
 
   const openDetail = (h: HoldingDetail) => {
@@ -133,6 +136,33 @@ export default function Holdings() {
   );
   const totalValue = mfValue + dematValue;
 
+  const allStocks: any[] = [];
+  demat.forEach((acct: any) => {
+    const h = acct.holdings || {};
+    const buckets: Array<[string, any[]]> = [
+      ["EQ", h.equities || []],
+      ["MF", h.demat_mutual_funds || []],
+      ["BOND", h.corporate_bonds || []],
+      ["GOV", h.government_securities || []],
+      ["AIF", h.aifs || []],
+    ];
+    buckets.forEach(([secType, list]) => {
+      list.forEach((s: any) => {
+        allStocks.push({
+          ...s,
+          secType,
+          dp: acct.dp_name || "Unknown",
+          bo_id: acct.bo_id,
+        });
+      });
+    });
+  });
+  allStocks.sort((a, b) => (b.value || 0) - (a.value || 0));
+  const topStockValue = allStocks.reduce(
+    (m: number, s: any) => Math.max(m, s.value || 0),
+    0
+  );
+
   let gainers = 0;
   let losers = 0;
   schemes.forEach((s) => {
@@ -163,10 +193,6 @@ export default function Holdings() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>Holdings</Text>
-          <Text style={styles.subtitle}>
-            {schemes.length + demat.length} instruments across{" "}
-            {mf.length + demat.length} accounts
-          </Text>
         </View>
 
         {/* Summary card */}
@@ -183,7 +209,7 @@ export default function Holdings() {
               <Text style={styles.summaryLabel}>Total Holdings Value</Text>
               <Text style={styles.summaryValue}>{fmtINR(totalValue)}</Text>
             </View>
-            {(gainers > 0 || losers > 0) && (
+            {tab === "mf" && (gainers > 0 || losers > 0) && (
               <View style={styles.moverRow}>
                 {gainers > 0 && (
                   <View
@@ -227,10 +253,11 @@ export default function Holdings() {
               <View
                 style={[styles.splitDot, { backgroundColor: colors.brand }]}
               />
-              <Text style={styles.splitLabel}>MF</Text>
+              <Text style={styles.splitLabel} numberOfLines={1}>
+                Mutual Funds
+              </Text>
               <Text style={styles.splitValue}>{fmtINR(mfValue)}</Text>
             </View>
-            <View style={styles.splitDivider} />
             <View style={styles.summarySplitItem}>
               <View
                 style={[
@@ -238,7 +265,9 @@ export default function Holdings() {
                   { backgroundColor: colors.brandBright },
                 ]}
               />
-              <Text style={styles.splitLabel}>Demat</Text>
+              <Text style={styles.splitLabel} numberOfLines={1}>
+                Stock Investments
+              </Text>
               <Text style={styles.splitValue}>{fmtINR(dematValue)}</Text>
             </View>
           </View>
@@ -276,6 +305,7 @@ export default function Holdings() {
                 styles.tabText,
                 tab === "mf" && { color: colors.text, fontWeight: "600" },
               ]}
+              numberOfLines={1}
             >
               Mutual Funds
             </Text>
@@ -301,7 +331,7 @@ export default function Holdings() {
               if (Platform.OS !== "web") Haptics.selectionAsync();
             }}
             activeOpacity={0.8}
-            accessibilityLabel="Demat tab"
+            accessibilityLabel="Stock investments tab"
             accessibilityRole="tab"
           >
             <View
@@ -318,8 +348,9 @@ export default function Holdings() {
                 styles.tabText,
                 tab === "demat" && { color: colors.text, fontWeight: "600" },
               ]}
+              numberOfLines={1}
             >
-              Demat
+              Stock Investments
             </Text>
             <Text
               style={[
@@ -442,7 +473,155 @@ export default function Holdings() {
             );
           })}
 
+        {tab === "demat" && (
+          <View style={styles.subToggleRow}>
+            <TouchableOpacity
+              style={[
+                styles.subToggleBtn,
+                stockView === "securities" && styles.subToggleBtnActive,
+              ]}
+              onPress={() => {
+                setStockView("securities");
+                if (Platform.OS !== "web") Haptics.selectionAsync();
+              }}
+              activeOpacity={0.8}
+              accessibilityLabel="View as individual stocks"
+              accessibilityRole="tab"
+            >
+              <Text
+                style={[
+                  styles.subToggleText,
+                  stockView === "securities" && styles.subToggleTextActive,
+                ]}
+                numberOfLines={1}
+              >
+                Stocks
+              </Text>
+              <Text style={styles.subToggleCount}>{allStocks.length}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.subToggleBtn,
+                stockView === "accounts" && styles.subToggleBtnActive,
+              ]}
+              onPress={() => {
+                setStockView("accounts");
+                if (Platform.OS !== "web") Haptics.selectionAsync();
+              }}
+              activeOpacity={0.8}
+              accessibilityLabel="View by demat account"
+              accessibilityRole="tab"
+            >
+              <Text
+                style={[
+                  styles.subToggleText,
+                  stockView === "accounts" && styles.subToggleTextActive,
+                ]}
+                numberOfLines={1}
+              >
+                Demat Accounts
+              </Text>
+              <Text style={styles.subToggleCount}>{demat.length}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {tab === "demat" && stockView === "securities" && allStocks.length === 0 && (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyIcon}>◎</Text>
+            <Text style={styles.emptyCardTitle}>No stock investments</Text>
+            <Text style={styles.emptyCardSub}>
+              Link a demat account to see your equity, bonds, and other securities here.
+            </Text>
+          </View>
+        )}
+
         {tab === "demat" &&
+          stockView === "securities" &&
+          allStocks.map((s: any, i: number) => {
+            const secName = s.name?.includes("#")
+              ? s.name.split("#").pop()
+              : s.name;
+            const secVal = s.value || 0;
+            const barPct =
+              topStockValue > 0
+                ? Math.max(3, (secVal / topStockValue) * 100)
+                : 0;
+            const dpShort = (s.dp || "").replace(" PRIVATE LIMITED", "");
+            return (
+              <TouchableOpacity
+                key={`sec-${i}`}
+                style={styles.card}
+                activeOpacity={0.75}
+                onPress={() =>
+                  openDetail({
+                    name: secName,
+                    sub: dpShort,
+                    type: s.secType,
+                    value: secVal,
+                    units: s.units,
+                    transactions: s.transactions,
+                  })
+                }
+                accessibilityLabel={`View ${secName} details`}
+                accessibilityRole="button"
+              >
+                <View
+                  style={[
+                    styles.cardAccent,
+                    { backgroundColor: colors.brandBright },
+                  ]}
+                />
+                <View style={styles.cardBody}>
+                  <View style={styles.cardHeader}>
+                    <View style={{ flex: 1, paddingRight: spacing.sm }}>
+                      <Text style={styles.cardName} numberOfLines={2}>
+                        {secName}
+                      </Text>
+                      <View style={styles.cardSubRow}>
+                        <View
+                          style={[
+                            styles.typeChip,
+                            { backgroundColor: colors.brandDim },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.typeChipText,
+                              { color: colors.brandBright },
+                            ]}
+                          >
+                            {s.secType}
+                          </Text>
+                        </View>
+                        <Text style={styles.cardSub} numberOfLines={1}>
+                          {dpShort}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={styles.cardValue}>{fmtCurrency(secVal)}</Text>
+                      <Text style={styles.secUnits}>{s.units} units</Text>
+                    </View>
+                  </View>
+                  <View style={styles.secBarBg}>
+                    <View
+                      style={[
+                        styles.secBar,
+                        {
+                          width: `${barPct}%`,
+                          backgroundColor: colors.brandBright,
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+
+        {tab === "demat" &&
+          stockView === "accounts" &&
           demat.map((acct: any, i: number) => {
             const dp = acct.dp_name || "Unknown";
             const holdings = acct.holdings || {};
@@ -600,6 +779,33 @@ const styles = StyleSheet.create({
     marginTop: 4,
     letterSpacing: 0.3,
   },
+  emptyCard: {
+    padding: spacing.xl,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    marginTop: spacing.sm,
+  },
+  emptyIcon: {
+    fontSize: 32,
+    color: colors.textTertiary,
+    marginBottom: spacing.sm,
+  },
+  emptyCardTitle: {
+    fontSize: fontSize.md,
+    color: colors.text,
+    fontWeight: "600",
+    marginBottom: 6,
+  },
+  emptyCardSub: {
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    textAlign: "center",
+    lineHeight: 18,
+    maxWidth: 260,
+  },
   emptyText: {
     color: colors.textSecondary,
     fontSize: fontSize.md,
@@ -651,18 +857,17 @@ const styles = StyleSheet.create({
     ...tabular,
   },
   summarySplit: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "column",
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.brandBorder,
+    gap: 10,
   },
   summarySplitItem: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
   },
   splitDot: {
     width: 8,
@@ -670,29 +875,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   splitLabel: {
-    fontSize: 11,
+    flex: 1,
+    fontSize: fontSize.sm,
     color: colors.textSecondary,
-    letterSpacing: 0.8,
-    fontWeight: "600",
+    letterSpacing: 0.2,
+    fontWeight: "500",
   },
   splitValue: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.text,
     fontWeight: "600",
-    marginLeft: "auto",
     ...tabular,
-  },
-  splitDivider: {
-    width: 1,
-    alignSelf: "stretch",
-    backgroundColor: colors.brandBorder,
-    marginHorizontal: spacing.md,
   },
 
   // Tabs
   tabs: {
     flexDirection: "row",
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
     gap: spacing.sm,
   },
   tab: {
@@ -700,14 +899,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: spacing.md,
+    gap: 6,
+    paddingVertical: 11,
+    paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    minHeight: 48,
+    minHeight: 44,
   },
   tabDot: {
     width: 6,
@@ -715,13 +914,56 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   tabText: {
+    flexShrink: 1,
     color: colors.textSecondary,
-    fontSize: fontSize.sm,
-    letterSpacing: 0.3,
+    fontSize: 13,
+    letterSpacing: 0.1,
   },
   tabCount: {
     color: colors.textTertiary,
-    fontSize: fontSize.xs,
+    fontSize: 11,
+    fontWeight: "700",
+    ...tabular,
+  },
+
+  // Sub-toggle (inside Stock Investments tab) — segmented control look
+  subToggleRow: {
+    flexDirection: "row",
+    padding: 4,
+    marginBottom: spacing.md,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+  },
+  subToggleBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 7,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: "transparent",
+  },
+  subToggleBtnActive: {
+    backgroundColor: colors.brandDim,
+  },
+  subToggleText: {
+    flexShrink: 1,
+    color: colors.textTertiary,
+    fontSize: 12,
+    letterSpacing: 0.1,
+    fontWeight: "500",
+  },
+  subToggleTextActive: {
+    color: colors.text,
+    fontWeight: "600",
+  },
+  subToggleCount: {
+    color: colors.textTertiary,
+    fontSize: 11,
     fontWeight: "700",
     ...tabular,
   },
